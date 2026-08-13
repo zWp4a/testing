@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Nuestra Casa">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2a78d6"/>
+      <stop offset="1" stop-color="#184f95"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="154" fill="url(#g)"/>
+  <path fill="#fff" d="M256 123 105 241h46v146h210V241h46L256 123Zm-71 118h142v106H185V241Z"/>
+  <path fill="#fff" d="M185 241h142v146H185z"/>
+  <path fill="url(#g)" d="M256 341c-14-12-29-22-29-36a15 15 0 0 1 29-7 15 15 0 0 1 29 7c0 14-15 24-29 36Z"/>
+</svg>
