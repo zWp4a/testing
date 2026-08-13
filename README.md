@@ -257,6 +257,15 @@ navegador abre tal cual.
   línea siguiente.
 - **Accesibilidad**: objetivos táctiles de 44px, foco visible, `aria-label` en los
   gráficos y respeto por `prefers-reduced-motion`.
+- **Nada se sale de costado**: la grilla de la app usa `minmax(0, 1fr)` y no
+  `1fr`, porque un track `1fr` no baja del contenido mínimo y un monto largo
+  estiraba la página entera. El tamaño del número grande está calculado para
+  entrar en 320px de ancho.
+- **Sin salto lateral**: la barra de scroll está oculta. Aparecía y desaparecía
+  según el alto de cada vista, y como las vistas se redibujan enteras, eso era
+  un salto en cada cambio. El scroll sigue andando con dedo, rueda y teclado.
+  Cuidado al tocar esto: `overflow-x` en `html`/`body` arregla el desborde pero
+  rompe el `position: sticky` de la barra superior.
 
 ---
 

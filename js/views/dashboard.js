@@ -167,10 +167,9 @@ export function renderDashboard(root, params) {
         value: budget.totalSpent,
         level: budget.usedPct >= 1 ? 'critical' : budget.usedPct >= 0.8 ? 'warning' : undefined,
       }], { max: Math.max(budget.totalIncome, budget.totalSpent, 1) }),
-      el('div', { class: 'hero__actions' }, [
-        el('button', { class: 'btn btn--primary', type: 'button', text: '＋ Cargar gasto', onclick: () => openExpenseForm(null, { date: defaultDateFor(mKey) }) }),
-        el('button', { class: 'btn', type: 'button', text: 'Sueldos', onclick: () => openIncomeForm(mKey) }),
-      ]),
+      // Sin botones: cargar un gasto es el ＋ flotante, y los sueldos se editan
+      // desde la tarjeta de acá abajo. Repetirlos empujaba el balance fuera
+      // de la primera pantalla.
     );
   }
   root.append(hero);
@@ -180,9 +179,10 @@ export function renderDashboard(root, params) {
     root.append(el('section', { class: 'card' }, [
       el('div', { class: 'card__head' }, [
         el('h2', { class: 'card__title grow', text: 'Cuánto le queda a cada uno' }),
-        el('button', { class: 'linkbtn', type: 'button', text: 'Editar sueldos', onclick: () => openIncomeForm(mKey) }),
+        // "Editar sueldos" partía el título en dos renglones en pantallas angostas.
+        el('button', { class: 'linkbtn nowrap', type: 'button', text: 'Sueldos', onclick: () => openIncomeForm(mKey) }),
       ]),
-      el('div', { class: 'stack', style: 'gap:16px' }, budget.rows.map((r) => {
+      el('div', { class: 'stack', style: 'gap:13px' }, budget.rows.map((r) => {
         const negativo = r.remainingCents < 0;
         return el('div', {}, [
           el('div', { class: 'row', style: 'margin-bottom:7px' }, [
@@ -208,8 +208,8 @@ export function renderDashboard(root, params) {
             : null,
         ]);
       })),
-      el('p', { class: 'field__hint', style: 'margin-top:14px' },
-        'Se descuenta la parte que le toca a cada uno, no lo que puso de su bolsillo: las diferencias se emparejan abajo, en el balance.'),
+      // La aclaración de por qué se descuenta la parte y no el desembolso vive
+      // en la tarjeta de balance, que es donde la diferencia se ve y se salda.
     ]));
   }
 
@@ -235,7 +235,7 @@ export function renderDashboard(root, params) {
         ]),
         el('span', { class: 'num', style: 'font-size:19px;font-weight:680', text: fmt(m.amountCents) }),
       ]),
-      el('p', { class: 'field__hint', text: 'Porque uno puso más plata de la que le tocaba. Al saldar, se empareja.' }),
+      el('p', { class: 'field__hint', text: 'Se descuenta la parte que le toca a cada uno, no lo que puso de su bolsillo: acá se empareja la diferencia.' }),
       el('button', {
         class: 'btn btn--block', type: 'button', style: 'margin-top:12px',
         text: 'Registrar el pago', onclick: () => openSettleForm(),

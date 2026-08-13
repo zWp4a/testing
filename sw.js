@@ -2,7 +2,7 @@
  * Estrategia: cache-first para los archivos propios, red para todo lo demás.
  */
 
-const VERSION = 'v3';
+const VERSION = 'v4';
 const CACHE = `pochohouse-${VERSION}`;
 
 const ASSETS = [

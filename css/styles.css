@@ -126,7 +126,21 @@ html, body {
   margin: 0;
   padding: 0;
   min-height: 100%;
+  max-width: 100%;
+  /* Ojo: no poner overflow-x aquí. Convierte a html/body en contenedor de
+     scroll y la barra superior deja de quedar pegada. El desborde lateral se
+     ataca en la raíz: minmax(0,1fr) en .app y montos que entran en pantalla. */
 }
+
+/* La barra de scroll se lleva ancho cuando aparece y se lo devuelve cuando
+   desaparece: con vistas que se redibujan enteras, eso es un salto lateral en
+   cada cambio. Se oculta la barra y el salto desaparece con ella; el scroll
+   sigue funcionando con dedo, rueda, teclado y trackpad. */
+html {
+  scrollbar-width: none;          /* Firefox */
+  -ms-overflow-style: none;       /* Edge viejo */
+}
+html::-webkit-scrollbar { width: 0; height: 0; }
 
 body {
   background: var(--plane);
@@ -156,10 +170,13 @@ a { color: var(--accent); }
 .app {
   min-height: 100dvh;
   display: grid;
-  grid-template-columns: 1fr;
+  /* minmax(0,…) y no 1fr: un track "1fr" no baja del contenido mínimo, así que
+     un número largo empujaba el ancho de toda la app. */
+  grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto 1fr auto;
   grid-template-areas: "topbar" "main" "tabbar";
 }
+.topbar, .main, .tabbar { min-width: 0; }
 
 .topbar {
   grid-area: topbar;
@@ -245,7 +262,7 @@ a { color: var(--accent); }
 
 @media (min-width: 860px) {
   .app {
-    grid-template-columns: 232px 1fr;
+    grid-template-columns: 232px minmax(0, 1fr);
     grid-template-areas: "topbar topbar" "sidenav main";
   }
   .topbar { padding: 12px 20px; }
@@ -293,7 +310,7 @@ a { color: var(--accent); }
   border-radius: var(--radius);
   box-shadow: var(--shadow-1);
   padding: 15px;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 .card--flush { padding: 0; overflow: hidden; }
 
@@ -650,8 +667,8 @@ a { color: var(--accent); }
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-1);
-  padding: 20px 18px;
-  margin-bottom: 12px;
+  padding: 16px 16px 18px;
+  margin-bottom: 10px;
   text-align: center;
 }
 .hero__label {
@@ -662,16 +679,19 @@ a { color: var(--accent); }
   color: var(--text-muted);
 }
 .hero__value {
-  font-size: clamp(34px, 11vw, 46px);
+  /* Un sueldo uruguayo son 14 caracteres ("$ 2.233.499,50"): el tamaño está
+     calculado para que entre en la pantalla más angosta sin estirar la página. */
+  font-size: clamp(27px, 8vw, 44px);
   font-weight: 700;
   letter-spacing: -0.03em;
   line-height: 1.05;
-  margin: 7px 0 3px;
+  margin: 6px 0 3px;
+  overflow-wrap: anywhere;   /* red de contención ante un número absurdo */
 }
 .hero__caption { font-size: 14px; color: var(--text-secondary); }
 .hero__actions { margin-top: 14px; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
 
-.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 12px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 10px; }
 .tile {
   background: var(--surface-1);
   border: 1px solid var(--border);
@@ -788,8 +808,8 @@ a { color: var(--accent); }
   background: var(--surface-1);
   border: 1px solid var(--border);
   border-radius: 999px;
-  padding: 4px;
-  margin-bottom: 12px;
+  padding: 3px;
+  margin-bottom: 10px;
   box-shadow: var(--shadow-1);
 }
 .monthnav__label {
