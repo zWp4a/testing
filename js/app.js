@@ -144,7 +144,9 @@ function firstRunIfNeeded() {
 
 /* --------------------------------------------------------------- arranque */
 
-if (!location.hash) location.hash = '#/resumen';
+// replaceState en vez de asignar el hash: asignarlo dispara un hashchange
+// que cerraría de inmediato la hoja de bienvenida.
+if (!location.hash) history.replaceState(null, '', '#/resumen');
 render();
 firstRunIfNeeded();
 
@@ -162,8 +164,11 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-/* Service worker: la app abre aunque no haya señal. */
-if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+/* Service worker: la app abre aunque no haya señal.
+   La versión de archivo único no lleva manifest y tampoco service worker. */
+if (document.querySelector('link[rel="manifest"]')
+    && 'serviceWorker' in navigator
+    && location.protocol.startsWith('http')) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('sw.js').catch((err) => console.warn('SW no registrado', err));
   });

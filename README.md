@@ -55,8 +55,13 @@ https://<tu-usuario>.github.io/<repo>/
 
 Esa dirección se abre igual desde la compu y desde cualquier celular.
 
-> ¿No querés publicarla? También funciona abriendo `index.html` con un servidor
-> local: `npx http-server` y entrás a `http://localhost:8080`.
+> ¿No querés publicarla todavía? Hay una **versión de un solo archivo** en
+> [`dist/nuestra-casa.html`](dist/nuestra-casa.html): la descargás, la abrís con
+> doble clic y funciona. Sirve para probarla en la compu en 10 segundos, pero no
+> se instala ni sincroniza — para eso usá la versión publicada.
+>
+> Para desarrollar también sirve un servidor local: `npx http-server` y entrás a
+> `http://localhost:8080`.
 
 ### 2. Instalarla en el celular
 
@@ -150,6 +155,7 @@ navegador abre tal cual.
 ```bash
 npx http-server -p 8080 -c-1     # servidor local
 python3 tools/make-icons.py      # regenerar los íconos
+node tools/build-single.mjs      # regenerar dist/nuestra-casa.html
 ```
 
 Para que un cambio de CSS o JS se vea en un teléfono donde ya la instalaste,
