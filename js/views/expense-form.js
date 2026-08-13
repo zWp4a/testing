@@ -3,6 +3,7 @@
 import { el, toCents, fromCents, today, uid, addMonths, clampDay, monthKey, usdABase } from '../util.js';
 import * as store from '../store.js';
 import { sharesOf } from '../calc.js';
+import { sugerirCategoria } from '../categorize.js';
 import {
   fmt, field, input, select, segmented, footerButtons, openSheet, closeSheet,
   toast, confirmSheet, avatar,
@@ -10,20 +11,30 @@ import {
 
 function categoryPicker(selectedId, onChange) {
   const wrap = el('div', { class: 'chips' });
+  const chips = new Map();
+
+  function marcar(id) {
+    wrap.value = id;
+    chips.forEach((chip, cid) => chip.setAttribute('aria-pressed', String(cid === id)));
+  }
+
   store.categories().forEach((c) => {
     const chip = el('button', {
       class: 'chip',
       type: 'button',
       'aria-pressed': c.id === selectedId,
       onclick: () => {
-        wrap.value = c.id;
-        [...wrap.children].forEach((x) => x.setAttribute('aria-pressed', String(x === chip)));
-        if (onChange) onChange(c.id);
+        marcar(c.id);
+        if (onChange) onChange(c.id, { aMano: true });
       },
     }, [el('span', { 'aria-hidden': 'true', text: c.emoji }), el('span', { text: c.name })]);
+    chips.set(c.id, chip);
     wrap.append(chip);
   });
+
   wrap.value = selectedId;
+  // Para que la sugerencia automática pueda mover la selección sin simular clics.
+  wrap.marcar = marcar;
   return wrap;
 }
 
@@ -147,7 +158,33 @@ export function openExpenseForm(existing = null, defaults = {}) {
     (v) => { draft.paidBy = v; renderPreview(); },
   );
 
-  const catPicker = categoryPicker(draft.categoryId, (v) => { draft.categoryId = v; });
+  /* Categoría sugerida a partir de la descripción. Se deja de sugerir en
+     cuanto elegís una a mano, y nunca toca un gasto que estás editando. */
+  let categoriaAMano = Boolean(existing);
+  const avisoCategoria = el('p', { class: 'field__hint', style: 'margin-top:6px' });
+
+  const catPicker = categoryPicker(draft.categoryId, (v, { aMano } = {}) => {
+    draft.categoryId = v;
+    if (aMano) { categoriaAMano = true; avisoCategoria.replaceChildren(); }
+  });
+
+  function sugerir() {
+    if (categoriaAMano) return;
+    const id = sugerirCategoria(descInput.value);
+    if (!id || id === draft.categoryId) return;
+    draft.categoryId = id;
+    catPicker.marcar(id);
+    const cat = store.category(id);
+    avisoCategoria.replaceChildren(
+      `Le puse ${cat.emoji} ${cat.name}. `,
+      el('button', {
+        class: 'linkbtn', type: 'button', text: 'No, elijo yo',
+        onclick: () => { categoriaAMano = true; avisoCategoria.replaceChildren(); },
+      }),
+    );
+  }
+
+  descInput.addEventListener('input', sugerir);
 
   const customWrap = el('div', { class: 'stack', style: 'margin-top:4px' });
   const splitSeg = segmented(splitOptions(roster), splitValueOf(draft, roster), (v) => {
@@ -331,6 +368,7 @@ export function openExpenseForm(existing = null, defaults = {}) {
       !isEdit ? field('Cuotas', cuotasInput, '1 = pago único') : null,
     ]),
     field('Categoría', catPicker),
+    avisoCategoria,
     field('¿Quién pagó?', payerSeg),
     field('División', splitSeg),
     customWrap,

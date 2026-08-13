@@ -2,7 +2,7 @@
  * Estrategia: cache-first para los archivos propios, red para todo lo demás.
  */
 
-const VERSION = 'v4';
+const VERSION = 'v5';
 const CACHE = `pochohouse-${VERSION}`;
 
 const ASSETS = [
@@ -18,6 +18,8 @@ const ASSETS = [
   'js/sync.js',
   'js/theme.js',
   'js/scan.js',
+  'js/categorize.js',
+  'js/compartir.js',
   'js/views/dashboard.js',
   'js/views/expenses.js',
   'js/views/expense-form.js',

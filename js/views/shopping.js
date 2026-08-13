@@ -8,9 +8,22 @@ import {
   openSheet, closeSheet, toast, confirmSheet,
 } from '../ui.js';
 import { openScanForm } from './scan-form.js';
+import { compartir, avisoDeCompartir } from '../compartir.js';
 
 function itemPrice(item) {
   return (item.estPriceCents || item.lastPriceCents || 0) * (item.qty || 1);
+}
+
+/** Lista en texto plano, para que se lea bien pegada en WhatsApp. */
+function textoDeLaLista(pendientes) {
+  const lineas = ['🛒 Lista de compras', ''];
+  pendientes.forEach((item) => {
+    const cantidad = (item.qty || 1) !== 1 ? ` (${item.qty}${item.unit ? ` ${item.unit}` : ''})` : '';
+    lineas.push(`• ${item.name}${cantidad}`);
+  });
+  const estimado = pendientes.reduce((s, i) => s + itemPrice(i), 0);
+  if (estimado) lineas.push('', `Estimado: ${fmt(estimado)}`);
+  return lineas.join('\n');
 }
 
 function openItemForm(existing) {
@@ -168,11 +181,22 @@ export function renderShopping(root) {
     quick.focus();
   }
 
-  root.append(el('button', {
-    class: 'btn btn--block', type: 'button', style: 'margin-bottom:12px',
-    text: '📷 Escanear ticket',
-    onclick: openScanForm,
-  }));
+  root.append(el('div', { class: 'row', style: 'gap:8px;margin-bottom:12px' }, [
+    el('button', {
+      class: 'btn grow', type: 'button',
+      text: '📷 Escanear ticket',
+      onclick: openScanForm,
+    }),
+    // Para mandarle la lista al que va al súper, sin captura de pantalla.
+    pending.length ? el('button', {
+      class: 'btn nowrap', type: 'button', text: '↗ Compartir',
+      'aria-label': 'Compartir la lista de compras',
+      onclick: async () => {
+        const aviso = avisoDeCompartir(await compartir(textoDeLaLista(pending), 'Lista de compras'));
+        if (aviso) toast(aviso);
+      },
+    }) : null,
+  ]));
 
   const card = el('section', { class: 'card card--flush' }, [
     el('div', { class: 'quickadd' }, [

@@ -1,11 +1,12 @@
 /* Arranque de la app: rutas, tema, sincronización y service worker. */
 
 import * as store from './store.js';
-import { defineRoute, render, navigate, parseHash, current } from './router.js';
+import { defineRoute, render, navigate, parseHash, buildHash, current } from './router.js';
 import { applyTheme, cycleTheme } from './theme.js';
 import { toast, closeSheet } from './ui.js';
 import * as sync from './sync.js';
-import { currentMonth } from './util.js';
+import { fixedStatus } from './calc.js';
+import { currentMonth, today } from './util.js';
 
 import { renderDashboard } from './views/dashboard.js';
 import { renderExpenses } from './views/expenses.js';
@@ -144,11 +145,61 @@ function firstRunIfNeeded() {
 
 /* --------------------------------------------------------------- arranque */
 
+/* ------------------------------------------- atajos del ícono del celular */
+
+/* El manifest abre la app con ?nuevo=1 o ?escanear=1. Se ejecuta la acción una
+   sola vez y se limpia el hash, para que un re-dibujo no la vuelva a abrir. */
+function accionDeAtajo() {
+  const { name, params } = parseHash();
+  if (!params.nuevo && !params.escanear) return;
+
+  const limpio = { ...params };
+  delete limpio.nuevo;
+  delete limpio.escanear;
+  history.replaceState(null, '', buildHash(name, limpio));
+
+  if (params.escanear) {
+    import('./views/scan-form.js').then((m) => m.openScanForm());
+  } else {
+    openExpenseForm();
+  }
+}
+
+/* ------------------------------------------------- aviso de vencimientos */
+
+/* Sin servidor no hay notificación con la app cerrada. Lo que sí podemos es
+   avisar al abrirla, una vez por día, y marcar el ícono con un contador. */
+function avisarVencimientos() {
+  const { rows } = fixedStatus(currentMonth());
+  const urgentes = rows.filter((r) => r.status === 'overdue' || r.status === 'due-soon');
+
+  if (navigator.setAppBadge) {
+    const badge = urgentes.length
+      ? navigator.setAppBadge(urgentes.length)
+      : navigator.clearAppBadge();
+    Promise.resolve(badge).catch(() => { /* el navegador no lo permite */ });
+  }
+
+  if (!urgentes.length) return;
+  if (store.config.lastNudgeAt === today()) return;   // ya avisamos hoy
+  store.saveConfig({ lastNudgeAt: today() });
+
+  const vencidos = urgentes.filter((r) => r.status === 'overdue').length;
+  toast(
+    vencidos
+      ? `${vencidos} fijo${vencidos > 1 ? 's' : ''} vencido${vencidos > 1 ? 's' : ''} sin pagar.`
+      : `${urgentes.length} fijo${urgentes.length > 1 ? 's' : ''} vence${urgentes.length > 1 ? 'n' : ''} en estos días.`,
+    { action: 'Ver', onAction: () => navigate('fijos'), ms: 7000 },
+  );
+}
+
 // replaceState en vez de asignar el hash: asignarlo dispara un hashchange
 // que cerraría de inmediato la hoja de bienvenida.
 if (!location.hash) history.replaceState(null, '', '#/resumen');
 render();
 firstRunIfNeeded();
+accionDeAtajo();
+avisarVencimientos();
 
 if (sync.isConfigured() && parseHash().name !== 'unir') sync.startAutoSync();
 

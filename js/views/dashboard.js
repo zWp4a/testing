@@ -12,6 +12,20 @@ import {
 } from '../ui.js';
 import { openExpenseForm } from './expense-form.js';
 import { navigate } from '../router.js';
+import { compartir, avisoDeCompartir } from '../compartir.js';
+
+/* ------------------------------------------------- recordatorio de saldar */
+
+/** Días desde el último pago registrado, o desde el primer gasto si nunca hubo. */
+function diasSinSaldar() {
+  const pagos = store.list('settlements');
+  const desde = pagos.length
+    ? pagos.map((s) => s.date).sort().at(-1)
+    : store.list('expenses').map((e) => e.date).sort()[0];
+  if (!desde) return 0;
+  const ms = new Date(`${today()}T00:00:00`) - new Date(`${desde}T00:00:00`);
+  return Math.max(0, Math.round(ms / 86400000));
+}
 
 /* ---------------------------------------------------------- sueldos del mes */
 
@@ -241,6 +255,15 @@ export function renderDashboard(root, params) {
         text: 'Registrar el pago', onclick: () => openSettleForm(),
       }),
     );
+
+    // Si hace rato que no se emparejan, la deuda se vuelve difícil de saldar.
+    const dias = diasSinSaldar();
+    if (dias >= 40) {
+      balanceCard.append(el('p', {
+        class: 'field__hint', style: 'margin-top:10px;color:var(--text-secondary)',
+        text: `Hace ${dias} días que no registran un pago entre ustedes. Cuanto más se junta, más cuesta emparejarlo.`,
+      }));
+    }
     if (moves.length > 1) {
       balanceCard.append(el('div', { class: 'stack small muted', style: 'margin-top:10px' },
         moves.slice(1).map((x) => el('span', {
@@ -410,6 +433,47 @@ export function renderDashboard(root, params) {
       },
     })), { title: 'Pagos entre ustedes' }));
   }
+
+  /* --- compartir el mes --- */
+  if (summary.count || budget.hasIncome) {
+    root.append(el('div', { class: 'center', style: 'margin:4px 0 8px' }, [
+      el('button', {
+        class: 'linkbtn', type: 'button', text: '↗ Compartir el resumen del mes',
+        onclick: async () => {
+          const aviso = avisoDeCompartir(await compartir(
+            textoDelMes(mKey, budget, summary, moves), `PochoHouse · ${monthLabel(mKey, locale)}`,
+          ));
+          if (aviso) toast(aviso);
+        },
+      }),
+    ]));
+  }
+}
+
+/* Un mensaje que se entienda pegado en WhatsApp, sin depender de la app. */
+function textoDelMes(mKey, budget, summary, moves) {
+  const lineas = [`🏡 PochoHouse · ${monthLabel(mKey, store.state.settings.locale)}`, ''];
+
+  if (budget.hasIncome) {
+    lineas.push(`Nos queda: ${fmt(budget.remainingCents)}`);
+    budget.rows.forEach((r) => lineas.push(`  · ${r.person.name}: ${fmt(r.remainingCents)}`));
+    lineas.push('');
+  }
+
+  lineas.push(`Gastado en el mes: ${fmt(summary.total)}`);
+  // Ya vienen ordenadas de mayor a menor desde monthSummary.
+  summary.categories.slice(0, 3).forEach((c) => {
+    lineas.push(`  · ${store.category(c.id).name}: ${fmt(c.cents)}`);
+  });
+
+  if (moves.length) {
+    const m = moves[0];
+    lineas.push('', `${store.person(m.fromId).name} le debe a ${store.person(m.toId).name}: ${fmt(m.amountCents)}`);
+  } else {
+    lineas.push('', 'Están al día: nadie le debe nada a nadie.');
+  }
+
+  return lineas.join('\n');
 }
 
 export function expenseRow(e) {

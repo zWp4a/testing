@@ -56,6 +56,21 @@ Algunas cosas útiles que quizás no esperabas:
   vuelve a cero.
 - **Proyección de los fijos**: además de lo que queda hoy, te dice con cuánto
   quedarían después de pagar los fijos que faltan.
+- **Categoría automática**: escribís "UTE" y se pone Luz sola. Conoce los
+  comercios y servicios de acá (OSE, Antel, Devoto, Ta-Ta, PedidosYa,
+  Farmashop, Ancap…) y además **aprende de lo que ya cargaste**: si vos ponés
+  Antel en Celular, la próxima vez va a Celular. Elegís una a mano y deja de
+  sugerir para ese gasto.
+- **Avisos al abrir**: si hay un fijo vencido o por vencer te lo dice apenas
+  entrás, una vez por día, y el ícono de la app queda con un contador.
+- **Recordatorio de saldar**: si pasaron más de 40 días sin registrar un pago
+  entre ustedes, la tarjeta de balance lo dice — cuanto más se junta, más
+  cuesta emparejarlo.
+- **Compartir por WhatsApp**: el resumen del mes y la lista de compras se
+  mandan con un toque, sin captura de pantalla.
+- **Atajos en el ícono**: manteniendo apretado el ícono en el celular salen
+  "Cargar un gasto", "Escanear un ticket" y "Lista de compras", que abren
+  directo en esa acción.
 - **Productos habituales**: leche, pan y café vuelven solos a la lista cada mes.
 - **Precio estimado del carrito** antes de ir al súper, usando lo que salió la vez pasada.
 - **Deshacer** en todo lo que se borra, backup en JSON y exportación a CSV.
@@ -208,6 +223,8 @@ js/
   calc.js               Balances, reparto, resúmenes, vencimientos
   sync.js               Sincronización con Supabase (REST, sin SDK)
   scan.js               Lectura de tickets: foto a Claude, o texto pegado
+  categorize.js         Adivina la categoría desde la descripción
+  compartir.js          Hoja de compartir del sistema, con copia de respaldo
   ui.js                 Piezas de interfaz: hoja modal, avisos, gráficos
   util.js               Dinero en centavos, fechas, cambio de moneda, DOM
   theme.js              Claro / oscuro / automático
@@ -257,6 +274,13 @@ navegador abre tal cual.
   línea siguiente.
 - **Accesibilidad**: objetivos táctiles de 44px, foco visible, `aria-label` en los
   gráficos y respeto por `prefers-reduced-motion`.
+- **Sin notificaciones push**: avisar con la app cerrada necesita un servidor,
+  y esto son archivos estáticos. El aviso de vencimientos salta al abrir la app
+  (una vez por día, con `config.lastNudgeAt`) y usa `navigator.setAppBadge`
+  para el contador del ícono, que sí anda sin servidor.
+- **Los datos se guardan con retraso** (120ms) y se hace `flush` en `pagehide`.
+  Consecuencia para las pruebas: escribir en `localStorage` a mano y recargar
+  no sirve — la página vieja pisa lo escrito con su estado en memoria.
 - **Nada se sale de costado**: la grilla de la app usa `minmax(0, 1fr)` y no
   `1fr`, porque un track `1fr` no baja del contenido mínimo y un monto largo
   estiraba la página entera. El tamaño del número grande está calculado para
