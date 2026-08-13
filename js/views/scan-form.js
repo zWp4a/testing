@@ -23,34 +23,43 @@ export function openScanForm() {
     },
   });
 
-  const body = el('div', {}, [
+  const conClave = tieneClave();
+
+  const botonFoto = el('button', {
+    class: `btn ${conClave ? 'btn--primary' : ''} btn--block`, type: 'button',
+    text: '📷 Sacar foto del ticket',
+    onclick: () => fileInput.click(),
+  });
+
+  const botonPegar = el('button', {
+    class: `btn ${conClave ? '' : 'btn--primary'} btn--block`, type: 'button',
+    text: '📝 Pegar el texto del ticket',
+    onclick: openPegarTexto,
+  });
+
+  // Sin clave la foto no va a ningún lado: se ofrece primero lo que funciona.
+  const body = el('div', {}, conClave ? [
     el('p', { class: 'muted small', style: 'margin-bottom:16px' },
       'Sacale una foto al ticket y se cargan todos los productos de una. Que se vean los renglones completos y sin sombras.'),
-
-    el('button', {
-      class: 'btn btn--primary btn--block', type: 'button',
-      text: '📷 Sacar foto del ticket',
-      onclick: () => fileInput.click(),
-    }),
+    botonFoto,
     fileInput,
-
     el('div', { class: 'divider' }),
-
+    botonPegar,
+    el('p', { class: 'field__hint', style: 'margin-top:8px' },
+      'Pegar el texto no usa internet ni consume saldo, pero lee peor que la foto.'),
+  ] : [
+    el('p', { class: 'muted small', style: 'margin-bottom:16px' },
+      'Copiá el texto del ticket desde la foto de tu celular y pegalo acá: la app lo lee sola, sin internet y sin costo.'),
+    botonPegar,
+    el('div', { class: 'divider' }),
+    el('p', { class: 'field__hint', style: 'margin-bottom:10px' },
+      'La foto directa carga todo de un toque, pero necesita una clave de Claude con saldo. Cuesta menos de un peso por ticket.'),
     el('button', {
       class: 'btn btn--block', type: 'button',
-      text: '📝 Pegar el texto del ticket',
-      onclick: openPegarTexto,
-    }),
-    el('p', { class: 'field__hint', style: 'margin-top:8px' },
-      tieneClave()
-        ? 'Pegar el texto no usa internet ni consume saldo, pero lee peor que la foto.'
-        : 'La foto necesita una clave de Claude (se configura en Ajustes). Pegar el texto funciona sin nada.'),
-
-    !tieneClave() ? el('button', {
-      class: 'btn btn--block', type: 'button', style: 'margin-top:12px',
       text: 'Configurar el escaneo por foto',
       onclick: () => { closeSheet(); navigate('ajustes'); },
-    }) : null,
+    }),
+    fileInput,
   ]);
 
   openSheet('Escanear ticket', body);
@@ -97,8 +106,12 @@ function openPegarTexto() {
   });
 
   openSheet('Pegar el texto del ticket', el('div', {}, [
-    el('p', { class: 'muted small', style: 'margin-bottom:12px' },
-      'Muchos celulares copian el texto de una foto: mantené apretado sobre la imagen y elegí copiar. Pegalo acá.'),
+    el('p', { class: 'muted small', style: 'margin-bottom:6px' },
+      'Tu celular ya sabe leer el texto de una foto, gratis y sin cuenta:'),
+    el('ul', { class: 'muted small', style: 'margin:0 0 14px;padding-left:20px;line-height:1.7' }, [
+      el('li', {}, [el('strong', { text: 'iPhone' }), ': abrí la foto en Fotos, tocá el ícono de texto abajo a la derecha, ', el('em', { text: 'Seleccionar todo' }), ' y ', el('em', { text: 'Copiar' }), '.']),
+      el('li', {}, [el('strong', { text: 'Android' }), ': abrí la foto y tocá ', el('strong', { text: 'Google Lens' }), ', después ', el('em', { text: 'Seleccionar todo' }), ' y ', el('em', { text: 'Copiar' }), '.']),
+    ]),
     field('Texto del ticket', area),
     footerButtons('Leer', () => {
       const leido = parsearTexto(area.value);

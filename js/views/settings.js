@@ -8,6 +8,7 @@ import {
   openSheet, closeSheet, toast, confirmSheet, avatar,
 } from '../ui.js';
 import * as sync from '../sync.js';
+import { MODELOS, modeloActual } from '../scan.js';
 import { applyTheme } from '../theme.js';
 import { navigate } from '../router.js';
 import { openIncomeForm } from './dashboard.js';
@@ -85,6 +86,13 @@ function openCategoryForm(existing = null) {
 
 /* --------------------------------------------------------- escaneo de tickets */
 
+/** Costo aproximado de un ticket, en pesos si hay cotización cargada. */
+function costoPorTicket(modelo) {
+  const cotizacion = store.state.settings.usdRateCents;
+  if (!cotizacion) return `unos US$ ${modelo.usdPorTicket.toFixed(3)} por ticket`;
+  return `unos ${fmt(Math.round(modelo.usdPorTicket * cotizacion))} por ticket`;
+}
+
 function openClaveForm() {
   const keyInput = input({
     type: 'password', placeholder: 'sk-ant-…', value: store.config.anthropicKey || '',
@@ -99,20 +107,39 @@ function openClaveForm() {
     },
   });
 
+  let modeloId = modeloActual().id;
+  const detalleModelo = el('p', { class: 'field__hint', style: 'margin-top:-8px' });
+
+  function pintarModelo() {
+    const m = MODELOS.find((x) => x.id === modeloId);
+    detalleModelo.textContent = `${m.detalle} Cuesta ${costoPorTicket(m)}.`;
+  }
+
   openSheet('Escaneo de tickets', el('div', {}, [
     el('p', { class: 'muted small', style: 'margin-bottom:14px' },
-      'Para leer la foto de un ticket hace falta una clave de la API de Claude. Se saca en console.anthropic.com → API Keys, y se paga por lo que uses (leer un ticket cuesta centavos).'),
+      'Para leer la foto de un ticket hace falta una clave de la API de Claude. Se saca en console.anthropic.com → API Keys y se paga por lo que uses.'),
     field('Clave de la API', keyInput, 'Queda guardada sólo en este navegador. No se sincroniza ni se sube a ningún lado.'),
     el('div', { style: 'margin:-6px 0 12px' }, [verBtn]),
-    el('p', { class: 'field__hint' },
-      'Sin clave podés igual pegar el texto del ticket: lo lee la app sola, sin internet y sin costo.'),
+
+    field('Qué tan fino lee', segmented(
+      MODELOS.map((m) => ({ value: m.id, label: m.nombre })),
+      modeloId,
+      (v) => { modeloId = v; pintarModelo(); },
+    )),
+    detalleModelo,
+
+    el('p', { class: 'field__hint', style: 'margin-top:14px' },
+      'Si un ticket sale mal leído, subí un escalón y probá de nuevo. Sin clave podés igual pegar el texto del ticket: lo lee la app sola, sin internet y sin costo.'),
+
     footerButtons('Guardar', () => {
       const clave = keyInput.value.trim();
-      store.saveConfig({ anthropicKey: clave });
+      store.saveConfig({ anthropicKey: clave, scanModel: modeloId });
       closeSheet();
       toast(clave ? 'Listo, ya podés escanear tickets.' : 'Escaneo por foto desactivado.');
     }, { secondaryLabel: 'Cerrar' }),
   ]));
+
+  pintarModelo();
 }
 
 /* ---------------------------------------------------------- sincronización */
@@ -327,8 +354,8 @@ export function renderSettings(root) {
     ]),
     el('p', { class: 'muted small', style: 'margin-bottom:12px' },
       claveCargada
-        ? 'Sacás una foto del ticket en Compras y se cargan todos los productos.'
-        : 'Con una clave de Claude podés sacarle una foto al ticket del súper y que se carguen todos los productos solos.'),
+        ? `Sacás una foto del ticket en Compras y se cargan todos los productos. Estás usando "${modeloActual().nombre}": ${costoPorTicket(modeloActual())}.`
+        : 'Con una clave de Claude podés sacarle una foto al ticket del súper y que se carguen todos los productos solos. Sin clave, pegando el texto del ticket funciona igual y no cuesta nada.'),
     el('button', {
       class: `btn ${claveCargada ? '' : 'btn--primary'} btn--block`, type: 'button',
       text: claveCargada ? 'Cambiar la clave' : 'Configurar el escaneo',

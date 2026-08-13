@@ -137,6 +137,7 @@ export const config = {
   supabaseUrl: '',
   supabaseKey: '',
   anthropicKey: '',   // sólo para leer tickets; nunca sale de este navegador
+  scanModel: '',      // vacío = el que scan.js trae por defecto
   spaceId: '',
   meId: '',
   autoSync: true,

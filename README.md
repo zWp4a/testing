@@ -77,15 +77,24 @@ puede cambiar cuando quieras desde **Ajustes → Cotización del dólar**.
 
 ### Escanear el ticket del súper
 
-En **Compras → Escanear ticket** hay dos caminos:
+En **Compras → Escanear ticket** hay dos caminos.
 
-- **📷 Sacar foto del ticket** — se manda la foto a Claude, que devuelve los
-  renglones ya separados en producto, cantidad y precio. Es lo más cómodo:
-  una compra de 40 productos queda cargada en un toque.
-- **📝 Pegar el texto del ticket** — muchos celulares copian el texto de una
-  foto (mantener apretado sobre la imagen → copiar). Se pega y la app lo
-  interpreta **acá mismo, sin internet y sin costo**. Lee peor que la foto,
-  pero siempre está disponible.
+**📝 Pegar el texto — gratis, sin cuenta y sin internet.** El celular ya sabe
+leer el texto de una foto:
+
+- **iPhone**: abrí la foto en Fotos → ícono de texto abajo a la derecha →
+  *Seleccionar todo* → *Copiar*.
+- **Android**: abrí la foto → **Google Lens** → *Seleccionar todo* → *Copiar*.
+
+Se pega en la app y el parser lo interpreta **acá mismo**. Aguanta lo que trae
+un ticket uruguayo de verdad: nombre y precio en renglones separados, códigos
+de barras sueltos, cantidades por peso (`0,532 kg x 395,00`), la letra del IVA
+al final del renglón, descuentos en negativo y encabezados con dirección y
+fecha. Este camino no cuesta nada, nunca.
+
+**📷 Sacar foto — un toque, pero paga.** La foto va a la API de Claude y vuelve
+con los renglones ya separados. Es lo más cómodo con una compra de 40
+productos, y lee mejor los tickets arrugados o borrosos.
 
 En los dos casos aparece una pantalla de revisión: se puede corregir cualquier
 nombre o precio, destildar lo que no va, y la app avisa si la suma de los
@@ -94,12 +103,26 @@ renglón que no se llegó a leer). Al confirmar se carga **un gasto** con el
 total, y opcionalmente se suman los productos a la lista de compras como ya
 comprados, con su precio, para estimar mejor la próxima vez.
 
-La foto necesita una clave propia de Claude, que se carga en **Ajustes →
-Escanear tickets con foto** y se saca en
-[console.anthropic.com](https://console.anthropic.com). Cada ticket cuesta
-fracciones de centavo de dólar. **La clave queda guardada sólo en el navegador
-de ese teléfono**: no se sincroniza, no entra en el backup y no está en este
-repositorio.
+#### Lo que cuesta la foto
+
+La clave se saca en [console.anthropic.com](https://console.anthropic.com) y se
+carga en **Ajustes → Escanear tickets**. Ahí mismo se elige con qué modelo
+leer, y la app muestra el costo estimado en pesos usando la cotización que
+tengas cargada:
+
+| Modelo | Por ticket | Cuándo conviene |
+|---|---|---|
+| **Rápido** (Haiku 4.5, por defecto) | ~US$ 0,009 | Un ticket bien sacado. |
+| **Equilibrado** (Sonnet 5) | ~US$ 0,017 | Letra chica, renglones cortados. |
+| **El que mejor lee** (Opus 5) | ~US$ 0,043 | Tickets arrugados, borrosos o muy largos. |
+
+Con ocho compras por mes eso es menos de un dólar al año con el modelo por
+defecto. Lo que sí hace falta es cargar el mínimo de la cuenta (unos US$ 5) con
+tarjeta: **la API no tiene plan gratis**. Si eso no va, pegar el texto cubre lo
+mismo sin gastar un peso.
+
+**La clave queda guardada sólo en el navegador de ese teléfono**: no se
+sincroniza, no entra en el backup y no está en este repositorio.
 
 ---
 
@@ -224,8 +247,14 @@ navegador abre tal cual.
   registrado a qué cambio se hizo aunque el dólar se mueva después.
 - **Escaneo de tickets**: la foto se reduce a 2000px de lado antes de subirla
   y se pide la respuesta con un esquema JSON fijo, así siempre vuelve la misma
-  forma. Sin clave, el pegado de texto se parsea localmente con expresiones
-  regulares: sirve de salida de emergencia sin red.
+  forma. El pedido se arma en escalones: si un modelo rechaza un parámetro
+  (`effort`, el esquema), reintenta sin él en vez de dejarte sin escáner en el
+  medio del súper.
+- **Parser de texto**: un precio sólo cuenta si cierra el renglón, así `Leche
+  1L` o `Av. Italia 2345 - Centro` no se leen como importes; y un precio
+  unitario tiene que traer centavos, así `PROMO 2x1` no se confunde con una
+  cantidad. Un renglón sin precio queda esperando: el importe suele venir en la
+  línea siguiente.
 - **Accesibilidad**: objetivos táctiles de 44px, foco visible, `aria-label` en los
   gráficos y respeto por `prefers-reduced-motion`.
 
