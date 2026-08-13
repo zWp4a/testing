@@ -1,17 +1,5 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="Gastos compartidos, cuentas del hogar y lista de compras para dos.">
-<meta name="theme-color" content="#fcfcfb" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0d0d0d" media="(prefers-color-scheme: dark)">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Nuestra Casa">
-<title>Nuestra Casa · Gastos compartidos</title>
+<!doctype html><html lang="es" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head><body><title>Nuestra Casa</title>
 
-<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIiByb2xlPSJpbWciIGFyaWEtbGFiZWw9Ik51ZXN0cmEgQ2FzYSI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjAiIHkyPSIxIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjMmE3OGQ2Ii8+CiAgICAgIDxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzE4NGY5NSIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CiAgPHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIHJ4PSIxNTQiIGZpbGw9InVybCgjZykiLz4KICA8cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjU2IDEyMyAxMDUgMjQxaDQ2djE0NmgyMTBWMjQxaDQ2TDI1NiAxMjNabS03MSAxMThoMTQydjEwNkgxODVWMjQxWiIvPgogIDxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0xODUgMjQxaDE0MnYxNDZIMTg1eiIvPgogIDxwYXRoIGZpbGw9InVybCgjZykiIGQ9Ik0yNTYgMzQxYy0xNC0xMi0yOS0yMi0yOS0zNmExNSAxNSAwIDAgMSAyOS03IDE1IDE1IDAgMCAxIDI5IDdjMCAxNC0xNSAyNC0yOSAzNloiLz4KPC9zdmc+Cg==">
-<link rel="apple-touch-icon" href="data:image/png;base64,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">
 <style>
 /* =========================================================
    Nuestra Casa — hoja de estilos
@@ -1022,8 +1010,6 @@ a { color: var(--accent); }
 }
 
 </style>
-</head>
-<body>
 
 <div class="app" id="app">
 
@@ -1077,6 +1063,8 @@ a { color: var(--accent); }
 </div>
 
 <div class="toasts" id="toasts" aria-live="polite" aria-atomic="false"></div>
+
+<script>window.__nuestraCasaPreview = true;</script>
 
 <script>
 (() => {
@@ -1328,7 +1316,7 @@ function esc(str) {
 }
 
 function $(sel, root = document) { return root.querySelector(sel); }
-function $(sel, root = document) { return [...root.querySelectorAll(sel)]; }
+function $$(sel, root = document) { return [...root.querySelectorAll(sel)]; }
 
 function clear(node) {
   while (node.firstChild) node.removeChild(node.firstChild);
@@ -1350,13 +1338,7 @@ function debounce(fn, ms = 300) {
   };
 }
 
-/**
- * Descarga un archivo generado en el navegador.
- * Devuelve false si el entorno no permite descargar (la versión de muestra
- * corre dentro de una página que las bloquea), para que quien llama avise.
- */
 function download(filename, text, mime = 'application/json') {
-  if (window.__nuestraCasaPreview) return false;
   const blob = new Blob([text], { type: `${mime};charset=utf-8` });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -1366,12 +1348,9 @@ function download(filename, text, mime = 'application/json') {
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
-  return true;
 }
 
-const SIN_DESCARGA = 'Las descargas andan en la app instalada, no en esta versión de muestra.';
-
-Object.assign(__exports, { uid, randomCode, nowIso, toCents, fromCents, parseAmount, allocate, money, today, toDateKey, monthKey, currentMonth, parseDateKey, addMonths, daysInMonth, clampDay, capitalize, monthLabel, dateLabel, daysBetween, el, esc, $, $, clear, initials, debounce, download, SIN_DESCARGA });
+Object.assign(__exports, { uid, randomCode, nowIso, toCents, fromCents, parseAmount, allocate, money, today, toDateKey, monthKey, currentMonth, parseDateKey, addMonths, daysInMonth, clampDay, capitalize, monthLabel, dateLabel, daysBetween, el, esc, $, $$, clear, initials, debounce, download });
 };
 
 __defs["js/store.js"] = (__exports, __req) => {
@@ -3359,7 +3338,7 @@ const {
 } = __req("js/ui.js");
 const { openExpenseForm } = __req("js/views/expense-form.js");
 const { navigate } = __req("js/router.js");
-const { download, SIN_DESCARGA } = __req("js/util.js");
+const { download } = __req("js/util.js");
 
 const filters = { q: '', categoryId: '', paidBy: '' };
 
@@ -3462,8 +3441,8 @@ function renderExpenses(root, params) {
       el('button', {
         class: 'btn btn--sm grow', type: 'button', text: '⬇ Exportar CSV del mes',
         onclick: () => {
-          const ok = download(`gastos-${mKey}.csv`, toCsv(mKey), 'text/csv');
-          toast(ok ? 'CSV descargado. Se abre en Excel o Sheets.' : SIN_DESCARGA);
+          download(`gastos-${mKey}.csv`, toCsv(mKey), 'text/csv');
+          toast('CSV descargado. Se abre en Excel o Sheets.');
         },
       }),
     ]));
@@ -4186,7 +4165,7 @@ Object.assign(__exports, { renderGoals });
 __defs["js/views/settings.js"] = (__exports, __req) => {
 /* Ajustes: personas, categorías, presupuestos, sincronización y backups. */
 
-const { el, toCents, fromCents, randomCode, download, today, SIN_DESCARGA } = __req("js/util.js");
+const { el, toCents, fromCents, randomCode, download, today } = __req("js/util.js");
 const store = __req("js/store.js");
 const { toCsv } = __req("js/calc.js");
 const {
@@ -4501,10 +4480,7 @@ function renderSettings(root) {
     el('div', { class: 'stack' }, [
       el('button', {
         class: 'btn btn--block', type: 'button', text: '⬇ Descargar backup (JSON)',
-        onclick: () => {
-          const ok = download(`nuestra-casa-${today()}.json`, store.exportData());
-          toast(ok ? 'Backup descargado.' : SIN_DESCARGA);
-        },
+        onclick: () => { download(`nuestra-casa-${today()}.json`, store.exportData()); toast('Backup descargado.'); },
       }),
       el('button', {
         class: 'btn btn--block', type: 'button', text: '⬆ Importar backup',
@@ -4512,10 +4488,7 @@ function renderSettings(root) {
       }),
       el('button', {
         class: 'btn btn--block', type: 'button', text: '⬇ Exportar todo a CSV',
-        onclick: () => {
-          const ok = download(`gastos-completo-${today()}.csv`, toCsv(), 'text/csv');
-          toast(ok ? 'CSV descargado.' : SIN_DESCARGA);
-        },
+        onclick: () => { download(`gastos-completo-${today()}.csv`, toCsv(), 'text/csv'); toast('CSV descargado.'); },
       }),
       fileInput,
     ]),
@@ -4813,6 +4786,4 @@ window.addEventListener('hashchange', closeSheet);
 };
 __req("js/app.js");
 })();
-</script>
-</body>
-</html>
+</script></body></html>

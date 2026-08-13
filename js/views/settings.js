@@ -1,6 +1,6 @@
 /* Ajustes: personas, categorías, presupuestos, sincronización y backups. */
 
-import { el, toCents, fromCents, randomCode, download, today } from '../util.js';
+import { el, toCents, fromCents, randomCode, download, today, SIN_DESCARGA } from '../util.js';
 import * as store from '../store.js';
 import { toCsv } from '../calc.js';
 import {
@@ -315,7 +315,10 @@ export function renderSettings(root) {
     el('div', { class: 'stack' }, [
       el('button', {
         class: 'btn btn--block', type: 'button', text: '⬇ Descargar backup (JSON)',
-        onclick: () => { download(`nuestra-casa-${today()}.json`, store.exportData()); toast('Backup descargado.'); },
+        onclick: () => {
+          const ok = download(`nuestra-casa-${today()}.json`, store.exportData());
+          toast(ok ? 'Backup descargado.' : SIN_DESCARGA);
+        },
       }),
       el('button', {
         class: 'btn btn--block', type: 'button', text: '⬆ Importar backup',
@@ -323,7 +326,10 @@ export function renderSettings(root) {
       }),
       el('button', {
         class: 'btn btn--block', type: 'button', text: '⬇ Exportar todo a CSV',
-        onclick: () => { download(`gastos-completo-${today()}.csv`, toCsv(), 'text/csv'); toast('CSV descargado.'); },
+        onclick: () => {
+          const ok = download(`gastos-completo-${today()}.csv`, toCsv(), 'text/csv');
+          toast(ok ? 'CSV descargado.' : SIN_DESCARGA);
+        },
       }),
       fileInput,
     ]),

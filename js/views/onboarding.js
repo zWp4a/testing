@@ -22,7 +22,8 @@ export function openOnboarding() {
   const meInput = input({ type: 'text', placeholder: 'Tu nombre', value: '', autocomplete: 'given-name' });
   const otherInput = input({ type: 'text', placeholder: 'El de tu pareja', value: '', autocomplete: 'off' });
   const currencySel = select(CURRENCIES, store.state.settings.currency);
-  const demoBox = input({ type: 'checkbox', class: 'switch__box' });
+  // En la versión de muestra conviene arrancar con datos cargados.
+  const demoBox = input({ type: 'checkbox', class: 'switch__box', checked: Boolean(window.__nuestraCasaPreview) });
 
   function finish() {
     const myName = meInput.value.trim() || 'Yo';

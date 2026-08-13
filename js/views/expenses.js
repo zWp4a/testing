@@ -8,7 +8,7 @@ import {
 } from '../ui.js';
 import { openExpenseForm } from './expense-form.js';
 import { navigate } from '../router.js';
-import { download } from '../util.js';
+import { download, SIN_DESCARGA } from '../util.js';
 
 const filters = { q: '', categoryId: '', paidBy: '' };
 
@@ -111,8 +111,8 @@ export function renderExpenses(root, params) {
       el('button', {
         class: 'btn btn--sm grow', type: 'button', text: '⬇ Exportar CSV del mes',
         onclick: () => {
-          download(`gastos-${mKey}.csv`, toCsv(mKey), 'text/csv');
-          toast('CSV descargado. Se abre en Excel o Sheets.');
+          const ok = download(`gastos-${mKey}.csv`, toCsv(mKey), 'text/csv');
+          toast(ok ? 'CSV descargado. Se abre en Excel o Sheets.' : SIN_DESCARGA);
         },
       }),
     ]));

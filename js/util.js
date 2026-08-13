@@ -258,7 +258,13 @@ export function debounce(fn, ms = 300) {
   };
 }
 
+/**
+ * Descarga un archivo generado en el navegador.
+ * Devuelve false si el entorno no permite descargar (la versión de muestra
+ * corre dentro de una página que las bloquea), para que quien llama avise.
+ */
 export function download(filename, text, mime = 'application/json') {
+  if (window.__nuestraCasaPreview) return false;
   const blob = new Blob([text], { type: `${mime};charset=utf-8` });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -268,4 +274,7 @@ export function download(filename, text, mime = 'application/json') {
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+  return true;
 }
+
+export const SIN_DESCARGA = 'Las descargas andan en la app instalada, no en esta versión de muestra.';

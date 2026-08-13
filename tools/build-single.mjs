@@ -7,7 +7,14 @@
  * normal: la versión de un archivo no registra service worker, así que no
  * queda instalada para uso sin conexión.
  *
- * Uso: node tools/build-single.mjs [salida.html]
+ * Uso:
+ *   node tools/build-single.mjs [salida.html]
+ *   node tools/build-single.mjs --fragmento [salida.html]
+ *
+ * Con --fragmento emite sólo el contenido (título, estilos, marcado y script)
+ * sin <html>/<head>/<body>, para plataformas que envuelven la página ellas
+ * mismas. Ese modo además arranca con los datos de ejemplo activados, porque
+ * se usa para mostrar la app, no para llevar las cuentas de verdad.
  */
 
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
@@ -16,7 +23,10 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const ENTRY = 'js/app.js';
-const OUT = process.argv[2] || resolve(ROOT, 'dist/nuestra-casa.html');
+const args = process.argv.slice(2);
+const FRAGMENT = args.includes('--fragmento');
+const OUT = args.find((a) => !a.startsWith('--'))
+  || resolve(ROOT, FRAGMENT ? 'dist/nuestra-casa-fragmento.html' : 'dist/nuestra-casa.html');
 
 const read = (rel) => readFileSync(resolve(ROOT, rel), 'utf8');
 
@@ -106,23 +116,37 @@ __req(${JSON.stringify(ENTRY)});
 /* ---------------------------------------------------------- armado HTML */
 
 const css = read('css/styles.css');
-const iconSvg = read('icons/icon.svg');
-const iconPng = readFileSync(resolve(ROOT, 'icons/icon-192.png')).toString('base64');
+const source = read('index.html');
 
-let html = read('index.html');
+let html;
 
-html = html
-  .replace('<link rel="stylesheet" href="css/styles.css">', `<style>\n${css}\n</style>`)
-  .replace('<link rel="manifest" href="manifest.webmanifest">', '')
-  .replace('<link rel="icon" href="icons/icon.svg" type="image/svg+xml">',
-    `<link rel="icon" href="data:image/svg+xml;base64,${Buffer.from(iconSvg).toString('base64')}">`)
-  .replace('<link rel="apple-touch-icon" href="icons/icon-180.png">',
-    `<link rel="apple-touch-icon" href="data:image/png;base64,${iconPng}">`)
-  .replace('<script type="module" src="js/app.js"></script>', `<script>\n${bundle}\n</script>`);
+if (FRAGMENT) {
+  const body = source.slice(source.indexOf('<body>') + 6, source.lastIndexOf('</body>'))
+    .replace('<script type="module" src="js/app.js"></script>', '')
+    .trim();
+  html = [
+    '<title>Nuestra Casa</title>',
+    `<style>\n${css}\n</style>`,
+    body,
+    '<script>window.__nuestraCasaPreview = true;</script>',
+    `<script>\n${bundle}\n</script>`,
+  ].join('\n\n');
+} else {
+  const iconSvg = read('icons/icon.svg');
+  const iconPng = readFileSync(resolve(ROOT, 'icons/icon-192.png')).toString('base64');
+  html = source
+    .replace('<link rel="stylesheet" href="css/styles.css">', `<style>\n${css}\n</style>`)
+    .replace('<link rel="manifest" href="manifest.webmanifest">', '')
+    .replace('<link rel="icon" href="icons/icon.svg" type="image/svg+xml">',
+      `<link rel="icon" href="data:image/svg+xml;base64,${Buffer.from(iconSvg).toString('base64')}">`)
+    .replace('<link rel="apple-touch-icon" href="icons/icon-180.png">',
+      `<link rel="apple-touch-icon" href="data:image/png;base64,${iconPng}">`)
+    .replace('<script type="module" src="js/app.js"></script>', `<script>\n${bundle}\n</script>`);
+}
 
 mkdirSync(dirname(OUT), { recursive: true });
 writeFileSync(OUT, html);
 
 const kb = (Buffer.byteLength(html) / 1024).toFixed(0);
 console.log(`✔ ${OUT}`);
-console.log(`  ${order.length} módulos · ${kb} KB`);
+console.log(`  ${order.length} módulos · ${kb} KB${FRAGMENT ? ' · fragmento' : ''}`);
