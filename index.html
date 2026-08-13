@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Gastos compartidos, cuentas del hogar y lista de compras para dos.">
+<meta name="theme-color" content="#fcfcfb" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0d0d0d" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Nuestra Casa">
+<title>Nuestra Casa · Gastos compartidos</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div class="app" id="app">
+
+  <header class="topbar">
+    <div class="topbar__brand">
+      <span class="topbar__logo" aria-hidden="true">🏡</span>
+      <span class="topbar__title">Nuestra Casa</span>
+    </div>
+    <div class="topbar__actions">
+      <button class="iconbtn" id="btn-sync" type="button" title="Sincronizar" aria-label="Sincronizar">
+        <span class="iconbtn__glyph" aria-hidden="true">⟳</span>
+      </button>
+      <button class="iconbtn" id="btn-theme" type="button" title="Tema" aria-label="Cambiar tema">
+        <span class="iconbtn__glyph" aria-hidden="true">◐</span>
+      </button>
+    </div>
+  </header>
+
+  <nav class="sidenav" aria-label="Secciones">
+    <a class="sidenav__item" data-nav="resumen" href="#/resumen"><span class="sidenav__ico" aria-hidden="true">📊</span><span>Resumen</span></a>
+    <a class="sidenav__item" data-nav="gastos" href="#/gastos"><span class="sidenav__ico" aria-hidden="true">🧾</span><span>Gastos</span></a>
+    <a class="sidenav__item" data-nav="fijos" href="#/fijos"><span class="sidenav__ico" aria-hidden="true">📅</span><span>Fijos</span></a>
+    <a class="sidenav__item" data-nav="compras" href="#/compras"><span class="sidenav__ico" aria-hidden="true">🛒</span><span>Compras</span></a>
+    <a class="sidenav__item" data-nav="metas" href="#/metas"><span class="sidenav__ico" aria-hidden="true">🎯</span><span>Metas</span></a>
+    <a class="sidenav__item" data-nav="ajustes" href="#/ajustes"><span class="sidenav__ico" aria-hidden="true">⚙️</span><span>Ajustes</span></a>
+  </nav>
+
+  <main class="main" id="view" tabindex="-1"></main>
+
+  <nav class="tabbar" aria-label="Secciones">
+    <a class="tabbar__item" data-nav="resumen" href="#/resumen"><span class="tabbar__ico" aria-hidden="true">📊</span><span class="tabbar__lbl">Resumen</span></a>
+    <a class="tabbar__item" data-nav="gastos" href="#/gastos"><span class="tabbar__ico" aria-hidden="true">🧾</span><span class="tabbar__lbl">Gastos</span></a>
+    <a class="tabbar__item" data-nav="fijos" href="#/fijos"><span class="tabbar__ico" aria-hidden="true">📅</span><span class="tabbar__lbl">Fijos</span></a>
+    <a class="tabbar__item" data-nav="compras" href="#/compras"><span class="tabbar__ico" aria-hidden="true">🛒</span><span class="tabbar__lbl">Compras</span></a>
+    <a class="tabbar__item" data-nav="ajustes" href="#/ajustes"><span class="tabbar__ico" aria-hidden="true">⚙️</span><span class="tabbar__lbl">Más</span></a>
+  </nav>
+
+  <button class="fab" id="btn-fab" type="button" aria-label="Agregar gasto">＋</button>
+</div>
+
+<div class="sheet" id="sheet" hidden>
+  <div class="sheet__scrim" data-close-sheet></div>
+  <div class="sheet__panel" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+    <div class="sheet__grip" aria-hidden="true"></div>
+    <div class="sheet__head">
+      <h2 class="sheet__title" id="sheet-title"></h2>
+      <button class="iconbtn" type="button" data-close-sheet aria-label="Cerrar">✕</button>
+    </div>
+    <div class="sheet__body" id="sheet-body"></div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts" aria-live="polite" aria-atomic="false"></div>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
