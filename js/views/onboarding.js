@@ -3,29 +3,17 @@
 import { el, toCents, currentMonth, monthLabel } from '../util.js';
 import * as store from '../store.js';
 import {
-  field, input, select, segmented, footerButtons, openSheet, closeSheet, toast, avatar,
+  field, input, segmented, footerButtons, openSheet, closeSheet, toast, avatar,
 } from '../ui.js';
 import { navigate } from '../router.js';
 
-const CURRENCIES = [
-  { value: 'ARS', label: 'Peso argentino ($)' },
-  { value: 'USD', label: 'Dólar (US$)' },
-  { value: 'EUR', label: 'Euro (€)' },
-  { value: 'CLP', label: 'Peso chileno' },
-  { value: 'COP', label: 'Peso colombiano' },
-  { value: 'MXN', label: 'Peso mexicano' },
-  { value: 'UYU', label: 'Peso uruguayo' },
-  { value: 'PEN', label: 'Sol peruano' },
-  { value: 'BRL', label: 'Real brasileño' },
-];
 
 export function openOnboarding() {
   const roster = store.people();
   const mes = currentMonth();
   let meId = roster[0].id;
 
-  const currencySel = select(CURRENCIES, store.state.settings.currency);
-  const demoBox = input({ type: 'checkbox', class: 'switch__box', checked: Boolean(window.__nuestraCasaPreview) });
+  const demoBox = input({ type: 'checkbox', class: 'switch__box', checked: Boolean(window.__pochoHousePreview) });
 
   const sueldos = new Map();
   const camposSueldo = roster.map((p) => {
@@ -44,7 +32,7 @@ export function openOnboarding() {
   });
 
   function finish() {
-    store.setSettings({ currency: currencySel.value, defaultPayer: meId });
+    store.setSettings({ defaultPayer: meId });
     store.saveConfig({ meId, onboarded: true });
     roster.forEach((p) => {
       const cents = toCents(sueldos.get(p.id).value);
@@ -70,8 +58,6 @@ export function openOnboarding() {
       meId,
       (v) => { meId = v; },
     ), 'Sirve para que cargues gastos con un toque menos.'),
-
-    field('Moneda', currencySel),
 
     el('div', { class: 'divider' }),
     el('p', { class: 'field__label', text: `Sueldo líquido de ${monthLabel(mes, store.state.settings.locale)}` }),

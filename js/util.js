@@ -130,6 +130,22 @@ export function money(cents, { locale = 'es-AR', currency = 'ARS', compact = fal
   return moneyFmt.format(value);
 }
 
+/* ------------------------------------------------------------ cotización */
+/* La moneda base es el peso uruguayo. Un gasto puede cargarse en dólares:
+   se guarda convertido a pesos y se recuerda el importe y la cotización
+   originales para poder mostrarlos. La cotización va en centésimos
+   (4025 = 40,25 UYU por dólar) para no arrastrar decimales. */
+
+export function usdABase(usdCents, rateCents) {
+  if (!rateCents || !usdCents) return 0;
+  return Math.round((usdCents * rateCents) / 100);
+}
+
+export function baseAUsd(baseCents, rateCents) {
+  if (!rateCents || !baseCents) return 0;
+  return Math.round((baseCents * 100) / rateCents);
+}
+
 /* -------------------------------------------------------------- fechas */
 
 /** Fecha local de hoy como YYYY-MM-DD (sin corrimientos por zona horaria). */
@@ -281,7 +297,7 @@ export function debounce(fn, ms = 300) {
  * corre dentro de una página que las bloquea), para que quien llama avise.
  */
 export function download(filename, text, mime = 'application/json') {
-  if (window.__nuestraCasaPreview) return false;
+  if (window.__pochoHousePreview) return false;
   const blob = new Blob([text], { type: `${mime};charset=utf-8` });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');

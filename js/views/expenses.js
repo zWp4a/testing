@@ -4,7 +4,7 @@ import { el, currentMonth, dateLabel, today } from '../util.js';
 import * as store from '../store.js';
 import { expensesOfMonth, sharesOf, toCsv } from '../calc.js';
 import {
-  fmt, monthNav, listCard, listItem, emptyState, input, select, toast,
+  fmt, fmtEn, monthNav, listCard, listItem, emptyState, input, select, toast,
 } from '../ui.js';
 import { openExpenseForm } from './expense-form.js';
 import { navigate } from '../router.js';
@@ -95,7 +95,9 @@ export function renderExpenses(root, params) {
         children.push(listItem({
           icon: cat.emoji,
           title: e.description,
-          subtitle: `Pagó ${payer.name} · te toca ${fmt(myShare)}${e.installment ? ` · cuota ${e.installment.n}/${e.installment.of}` : ''}`,
+          subtitle: `Pagó ${payer.name} · te toca ${fmt(myShare)}`
+            + (e.fx ? ` · ${fmtEn(e.fx.amountCents, e.fx.currency)}` : '')
+            + (e.installment ? ` · cuota ${e.installment.n}/${e.installment.of}` : ''),
           amount: e.amountCents,
           onClick: () => openExpenseForm(e),
         }));

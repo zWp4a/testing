@@ -1,6 +1,6 @@
 /* Formulario de gasto: alta, edición, cuotas y división entre las personas. */
 
-import { el, toCents, fromCents, today, uid, addMonths, clampDay, monthKey } from '../util.js';
+import { el, toCents, fromCents, today, uid, addMonths, clampDay, monthKey, usdABase } from '../util.js';
 import * as store from '../store.js';
 import { sharesOf } from '../calc.js';
 import {
@@ -83,14 +83,53 @@ export function openExpenseForm(existing = null, defaults = {}) {
     installments: 1,
   };
 
+  /* --- moneda: la base son pesos; un gasto puede venir en dólares --- */
+  const fxPrevio = existing?.fx || null;
+  let moneda = fxPrevio ? 'USD' : 'UYU';
+  let cotizacion = fxPrevio?.rateCents || store.state.settings.usdRateCents || 0;
+
   const amountInput = input({
     class: 'input input--amount',
     type: 'text',
     inputmode: 'decimal',
     placeholder: '0,00',
-    value: draft.amountCents ? String(fromCents(draft.amountCents)).replace('.', ',') : '',
+    value: (() => {
+      const cents = fxPrevio ? fxPrevio.amountCents : draft.amountCents;
+      return cents ? String(fromCents(cents)).replace('.', ',') : '';
+    })(),
     'aria-label': 'Monto',
   });
+
+  const cotizacionInput = input({
+    type: 'text', inputmode: 'decimal', placeholder: '40,00',
+    value: cotizacion ? String(cotizacion / 100).replace('.', ',') : '',
+    oninput: (e) => { cotizacion = toCents(e.target.value); renderMoneda(); renderPreview(); },
+  });
+
+  const monedaWrap = el('div', { style: 'margin-top:8px' });
+  const monedaSeg = segmented([
+    { value: 'UYU', label: '$ Pesos' },
+    { value: 'USD', label: 'US$ Dólares' },
+  ], moneda, (v) => { moneda = v; renderMoneda(); renderPreview(); });
+
+  /** Cuánto vale el gasto en pesos, sea cual sea la moneda con que se cargó. */
+  function montoEnPesos() {
+    const escrito = toCents(amountInput.value);
+    return moneda === 'USD' ? usdABase(escrito, cotizacion) : escrito;
+  }
+
+  function renderMoneda() {
+    monedaWrap.replaceChildren();
+    if (moneda !== 'USD') return;
+    monedaWrap.append(
+      field('Cotización del dólar', cotizacionInput,
+        'Cuántos pesos vale un dólar. Se guarda para la próxima vez.'),
+      el('p', { class: 'field__hint', style: 'margin-top:-8px' },
+        cotizacion
+          ? `Se guarda como ${fmt(montoEnPesos())} en pesos.`
+          : 'Poné la cotización para poder convertirlo a pesos.'),
+    );
+  }
 
   const descInput = input({
     type: 'text',
@@ -161,7 +200,7 @@ export function openExpenseForm(existing = null, defaults = {}) {
   const preview = el('div', { class: 'card', style: 'background:var(--surface-2);box-shadow:none;margin:0' });
 
   function currentAmount() {
-    return toCents(amountInput.value);
+    return montoEnPesos();
   }
 
   function renderPreview() {
@@ -210,11 +249,21 @@ export function openExpenseForm(existing = null, defaults = {}) {
       const sum = Object.values(draft.splitPct || {}).reduce((s, n) => s + (Number(n) || 0), 0);
       if (sum <= 0) { toast('Los porcentajes tienen que sumar más de cero.'); return; }
     }
+    if (moneda === 'USD' && !cotizacion) {
+      toast('Falta la cotización del dólar.');
+      return;
+    }
+
+    const fx = moneda === 'USD'
+      ? { currency: 'USD', amountCents: toCents(amountInput.value), rateCents: cotizacion }
+      : null;
+    if (fx) store.setSettings({ usdRateCents: cotizacion });
 
     const payload = {
       date: draft.date,
       description: draft.description,
       categoryId: draft.categoryId,
+      fx,
       paidBy: draft.paidBy,
       splitMode: draft.splitMode,
       splitTo: draft.splitMode === 'single' ? (draft.splitTo || draft.paidBy) : null,
@@ -273,6 +322,9 @@ export function openExpenseForm(existing = null, defaults = {}) {
 
   const body = el('div', {}, [
     field('Monto', amountInput),
+    monedaSeg,
+    monedaWrap,
+    el('div', { style: 'height:13px' }),
     field('Descripción', descInput),
     el('div', { class: 'grid-2', style: 'margin-bottom:13px' }, [
       field('Fecha', dateInput),
@@ -294,6 +346,7 @@ export function openExpenseForm(existing = null, defaults = {}) {
   ]);
 
   renderCustom();
+  renderMoneda();
   renderPreview();
   openSheet(isEdit ? 'Editar gasto' : 'Nuevo gasto', body);
   if (!isEdit) setTimeout(() => amountInput.focus(), 60);

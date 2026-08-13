@@ -7,6 +7,7 @@ import {
   fmt, emptyState, field, input, select, segmented, footerButtons,
   openSheet, closeSheet, toast, confirmSheet,
 } from '../ui.js';
+import { openScanForm } from './scan-form.js';
 
 function itemPrice(item) {
   return (item.estPriceCents || item.lastPriceCents || 0) * (item.qty || 1);
@@ -166,6 +167,12 @@ export function renderShopping(root) {
     quick.value = '';
     quick.focus();
   }
+
+  root.append(el('button', {
+    class: 'btn btn--block', type: 'button', style: 'margin-bottom:12px',
+    text: '📷 Escanear ticket',
+    onclick: openScanForm,
+  }));
 
   const card = el('section', { class: 'card card--flush' }, [
     el('div', { class: 'quickadd' }, [

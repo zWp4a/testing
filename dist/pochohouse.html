@@ -1,8 +1,20 @@
-<title>Nuestra Casa</title>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Gastos compartidos, cuentas del hogar y lista de compras para dos.">
+<meta name="theme-color" content="#fcfcfb" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0d0d0d" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="PochoHouse">
+<title>PochoHouse · Gastos compartidos</title>
 
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIiByb2xlPSJpbWciIGFyaWEtbGFiZWw9Ik51ZXN0cmEgQ2FzYSI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjAiIHkyPSIxIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjMmE3OGQ2Ii8+CiAgICAgIDxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzE4NGY5NSIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CiAgPHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIHJ4PSIxNTQiIGZpbGw9InVybCgjZykiLz4KICA8cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjU2IDEyMyAxMDUgMjQxaDQ2djE0NmgyMTBWMjQxaDQ2TDI1NiAxMjNabS03MSAxMThoMTQydjEwNkgxODVWMjQxWiIvPgogIDxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0xODUgMjQxaDE0MnYxNDZIMTg1eiIvPgogIDxwYXRoIGZpbGw9InVybCgjZykiIGQ9Ik0yNTYgMzQxYy0xNC0xMi0yOS0yMi0yOS0zNmExNSAxNSAwIDAgMSAyOS03IDE1IDE1IDAgMCAxIDI5IDdjMCAxNC0xNSAyNC0yOSAzNloiLz4KPC9zdmc+Cg==">
+<link rel="apple-touch-icon" href="data:image/png;base64,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">
 <style>
 /* =========================================================
-   Nuestra Casa — hoja de estilos
+   PochoHouse — hoja de estilos
    Tokens claros/oscuros. Mobile-first. Sin dependencias.
    ========================================================= */
 
@@ -1010,13 +1022,15 @@ a { color: var(--accent); }
 }
 
 </style>
+</head>
+<body>
 
 <div class="app" id="app">
 
   <header class="topbar">
     <div class="topbar__brand">
       <span class="topbar__logo" aria-hidden="true">🏡</span>
-      <span class="topbar__title">Nuestra Casa</span>
+      <span class="topbar__title">PochoHouse</span>
     </div>
     <div class="topbar__actions">
       <button class="iconbtn" id="btn-sync" type="button" title="Sincronizar" aria-label="Sincronizar">
@@ -1063,8 +1077,6 @@ a { color: var(--accent); }
 </div>
 
 <div class="toasts" id="toasts" aria-live="polite" aria-atomic="false"></div>
-
-<script>window.__nuestraCasaPreview = true;</script>
 
 <script>
 (() => {
@@ -1210,6 +1222,22 @@ function money(cents, { locale = 'es-AR', currency = 'ARS', compact = false, cen
   return moneyFmt.format(value);
 }
 
+/* ------------------------------------------------------------ cotización */
+/* La moneda base es el peso uruguayo. Un gasto puede cargarse en dólares:
+   se guarda convertido a pesos y se recuerda el importe y la cotización
+   originales para poder mostrarlos. La cotización va en centésimos
+   (4025 = 40,25 UYU por dólar) para no arrastrar decimales. */
+
+function usdABase(usdCents, rateCents) {
+  if (!rateCents || !usdCents) return 0;
+  return Math.round((usdCents * rateCents) / 100);
+}
+
+function baseAUsd(baseCents, rateCents) {
+  if (!rateCents || !baseCents) return 0;
+  return Math.round((baseCents * 100) / rateCents);
+}
+
 /* -------------------------------------------------------------- fechas */
 
 /** Fecha local de hoy como YYYY-MM-DD (sin corrimientos por zona horaria). */
@@ -1316,7 +1344,7 @@ function esc(str) {
 }
 
 function $(sel, root = document) { return root.querySelector(sel); }
-function $$(sel, root = document) { return [...root.querySelectorAll(sel)]; }
+function $(sel, root = document) { return [...root.querySelectorAll(sel)]; }
 
 function clear(node) {
   while (node.firstChild) node.removeChild(node.firstChild);
@@ -1361,7 +1389,7 @@ function debounce(fn, ms = 300) {
  * corre dentro de una página que las bloquea), para que quien llama avise.
  */
 function download(filename, text, mime = 'application/json') {
-  if (window.__nuestraCasaPreview) return false;
+  if (window.__pochoHousePreview) return false;
   const blob = new Blob([text], { type: `${mime};charset=utf-8` });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -1376,7 +1404,7 @@ function download(filename, text, mime = 'application/json') {
 
 const SIN_DESCARGA = 'Las descargas andan en la app instalada, no en esta versión de muestra.';
 
-Object.assign(__exports, { uid, randomCode, nowIso, toCents, fromCents, parseAmount, allocate, money, today, toDateKey, monthKey, currentMonth, parseDateKey, addMonths, daysInMonth, clampDay, capitalize, monthLabel, dateLabel, daysBetween, el, esc, $, $$, clear, initials, debounce, download, SIN_DESCARGA });
+Object.assign(__exports, { uid, randomCode, nowIso, toCents, fromCents, parseAmount, allocate, money, usdABase, baseAUsd, today, toDateKey, monthKey, currentMonth, parseDateKey, addMonths, daysInMonth, clampDay, capitalize, monthLabel, dateLabel, daysBetween, el, esc, $, $, clear, initials, debounce, download, SIN_DESCARGA });
 };
 
 __defs["js/store.js"] = (__exports, __req) => {
@@ -1388,8 +1416,20 @@ __defs["js/store.js"] = (__exports, __req) => {
 
 const { uid, nowIso, currentMonth } = __req("js/util.js");
 
-const KEY = 'nuestracasa.v1';
-const CONFIG_KEY = 'nuestracasa.config.v1'; // no se sincroniza (claves y prefs del dispositivo)
+const KEY = 'pochohouse.v1';
+const CONFIG_KEY = 'pochohouse.config.v1'; // no se sincroniza (claves y prefs del dispositivo)
+const KEY_ANTERIOR = 'nuestracasa.v1';           // la app se llamaba así antes
+const CONFIG_KEY_ANTERIOR = 'nuestracasa.config.v1';
+
+/** Lee la clave nueva; si no está, rescata la del nombre anterior. */
+function leerClave(nueva, vieja) {
+  const actual = localStorage.getItem(nueva);
+  if (actual !== null) return actual;
+  const previa = localStorage.getItem(vieja);
+  if (previa === null) return null;
+  try { localStorage.setItem(nueva, previa); } catch { /* seguimos con lo leído */ }
+  return previa;
+}
 
 const COLLECTIONS = ['expenses', 'fixed', 'shopping', 'goals', 'settlements', 'categories', 'people', 'incomes'];
 
@@ -1435,11 +1475,13 @@ function freshState() {
   return {
     version: 1,
     settings: {
-      currency: 'ARS',
-      locale: 'es-AR',
+      currency: 'UYU',
+      locale: 'es-UY',
+      // Cotización del dólar en centésimos: 4025 = 40,25 UYU por dólar.
+      usdRateCents: 0,
       defaultPayer: people[0].id,
       defaultSplit: 'equal',
-      homeName: 'Nuestra Casa',
+      homeName: 'PochoHouse',
       updatedAt: ts,
     },
     people,
@@ -1457,7 +1499,7 @@ function freshState() {
 
 function readLocal() {
   try {
-    const raw = localStorage.getItem(KEY);
+    const raw = leerClave(KEY, KEY_ANTERIOR);
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     return migrate(parsed);
@@ -1494,7 +1536,7 @@ const state = readLocal() || freshState();
 /* Config del dispositivo: no viaja en el backup ni en la nube. */
 function readConfig() {
   try {
-    return JSON.parse(localStorage.getItem(CONFIG_KEY)) || {};
+    return JSON.parse(leerClave(CONFIG_KEY, CONFIG_KEY_ANTERIOR)) || {};
   } catch {
     return {};
   }
@@ -1504,6 +1546,7 @@ const config = {
   theme: 'auto',
   supabaseUrl: '',
   supabaseKey: '',
+  anthropicKey: '',   // sólo para leer tickets; nunca sale de este navegador
   spaceId: '',
   meId: '',
   autoSync: true,
@@ -1694,7 +1737,7 @@ function me() {
 
 function exportData() {
   return JSON.stringify({
-    app: 'nuestra-casa',
+    app: 'pochohouse',
     version: state.version,
     exportedAt: nowIso(),
     data: {
@@ -1967,6 +2010,11 @@ function fmt(cents, opts = {}) {
 
 function fmtShort(cents) {
   return fmt(cents, { compact: true, cents: false });
+}
+
+/** Formatea en una moneda distinta de la base (para mostrar el importe original). */
+function fmtEn(cents, currency) {
+  return money(cents, { locale: state.settings.locale || 'es-UY', currency });
 }
 
 /* ------------------------------------------------------------- hoja modal */
@@ -2292,7 +2340,7 @@ function listItem({ icon, title, subtitle, amount, amountClass = '', trailing = 
   }, [...content, trailing]);
 }
 
-Object.assign(__exports, { fmt, fmtShort, openSheet, closeSheet, dismissToasts, toast, confirmSheet, avatar, field, input, select, segmented, switchRow, footerButtons, emptyState, monthNav, barList, trendChart, splitBar, listCard, listItem });
+Object.assign(__exports, { fmt, fmtShort, fmtEn, openSheet, closeSheet, dismissToasts, toast, confirmSheet, avatar, field, input, select, segmented, switchRow, footerButtons, emptyState, monthNav, barList, trendChart, splitBar, listCard, listItem });
 };
 
 __defs["js/sync.js"] = (__exports, __req) => {
@@ -2872,7 +2920,7 @@ Object.assign(__exports, { sharesOf, expensesOfMonth, settlementsOfMonth, balanc
 __defs["js/views/expense-form.js"] = (__exports, __req) => {
 /* Formulario de gasto: alta, edición, cuotas y división entre las personas. */
 
-const { el, toCents, fromCents, today, uid, addMonths, clampDay, monthKey } = __req("js/util.js");
+const { el, toCents, fromCents, today, uid, addMonths, clampDay, monthKey, usdABase } = __req("js/util.js");
 const store = __req("js/store.js");
 const { sharesOf } = __req("js/calc.js");
 const {
@@ -2955,14 +3003,53 @@ function openExpenseForm(existing = null, defaults = {}) {
     installments: 1,
   };
 
+  /* --- moneda: la base son pesos; un gasto puede venir en dólares --- */
+  const fxPrevio = existing?.fx || null;
+  let moneda = fxPrevio ? 'USD' : 'UYU';
+  let cotizacion = fxPrevio?.rateCents || store.state.settings.usdRateCents || 0;
+
   const amountInput = input({
     class: 'input input--amount',
     type: 'text',
     inputmode: 'decimal',
     placeholder: '0,00',
-    value: draft.amountCents ? String(fromCents(draft.amountCents)).replace('.', ',') : '',
+    value: (() => {
+      const cents = fxPrevio ? fxPrevio.amountCents : draft.amountCents;
+      return cents ? String(fromCents(cents)).replace('.', ',') : '';
+    })(),
     'aria-label': 'Monto',
   });
+
+  const cotizacionInput = input({
+    type: 'text', inputmode: 'decimal', placeholder: '40,00',
+    value: cotizacion ? String(cotizacion / 100).replace('.', ',') : '',
+    oninput: (e) => { cotizacion = toCents(e.target.value); renderMoneda(); renderPreview(); },
+  });
+
+  const monedaWrap = el('div', { style: 'margin-top:8px' });
+  const monedaSeg = segmented([
+    { value: 'UYU', label: '$ Pesos' },
+    { value: 'USD', label: 'US$ Dólares' },
+  ], moneda, (v) => { moneda = v; renderMoneda(); renderPreview(); });
+
+  /** Cuánto vale el gasto en pesos, sea cual sea la moneda con que se cargó. */
+  function montoEnPesos() {
+    const escrito = toCents(amountInput.value);
+    return moneda === 'USD' ? usdABase(escrito, cotizacion) : escrito;
+  }
+
+  function renderMoneda() {
+    monedaWrap.replaceChildren();
+    if (moneda !== 'USD') return;
+    monedaWrap.append(
+      field('Cotización del dólar', cotizacionInput,
+        'Cuántos pesos vale un dólar. Se guarda para la próxima vez.'),
+      el('p', { class: 'field__hint', style: 'margin-top:-8px' },
+        cotizacion
+          ? `Se guarda como ${fmt(montoEnPesos())} en pesos.`
+          : 'Poné la cotización para poder convertirlo a pesos.'),
+    );
+  }
 
   const descInput = input({
     type: 'text',
@@ -3033,7 +3120,7 @@ function openExpenseForm(existing = null, defaults = {}) {
   const preview = el('div', { class: 'card', style: 'background:var(--surface-2);box-shadow:none;margin:0' });
 
   function currentAmount() {
-    return toCents(amountInput.value);
+    return montoEnPesos();
   }
 
   function renderPreview() {
@@ -3082,11 +3169,21 @@ function openExpenseForm(existing = null, defaults = {}) {
       const sum = Object.values(draft.splitPct || {}).reduce((s, n) => s + (Number(n) || 0), 0);
       if (sum <= 0) { toast('Los porcentajes tienen que sumar más de cero.'); return; }
     }
+    if (moneda === 'USD' && !cotizacion) {
+      toast('Falta la cotización del dólar.');
+      return;
+    }
+
+    const fx = moneda === 'USD'
+      ? { currency: 'USD', amountCents: toCents(amountInput.value), rateCents: cotizacion }
+      : null;
+    if (fx) store.setSettings({ usdRateCents: cotizacion });
 
     const payload = {
       date: draft.date,
       description: draft.description,
       categoryId: draft.categoryId,
+      fx,
       paidBy: draft.paidBy,
       splitMode: draft.splitMode,
       splitTo: draft.splitMode === 'single' ? (draft.splitTo || draft.paidBy) : null,
@@ -3145,6 +3242,9 @@ function openExpenseForm(existing = null, defaults = {}) {
 
   const body = el('div', {}, [
     field('Monto', amountInput),
+    monedaSeg,
+    monedaWrap,
+    el('div', { style: 'height:13px' }),
     field('Descripción', descInput),
     el('div', { class: 'grid-2', style: 'margin-bottom:13px' }, [
       field('Fecha', dateInput),
@@ -3166,6 +3266,7 @@ function openExpenseForm(existing = null, defaults = {}) {
   ]);
 
   renderCustom();
+  renderMoneda();
   renderPreview();
   openSheet(isEdit ? 'Editar gasto' : 'Nuevo gasto', body);
   if (!isEdit) setTimeout(() => amountInput.focus(), 60);
@@ -3184,7 +3285,7 @@ const {
   fixedStatus, budgetStatus, goalProgress, monthBudget,
 } = __req("js/calc.js");
 const {
-  fmt, monthNav, barList, trendChart, splitBar, listCard, listItem, emptyState,
+  fmt, fmtEn, monthNav, barList, trendChart, splitBar, listCard, listItem, emptyState,
   openSheet, closeSheet, field, input, select, footerButtons, toast, avatar,
 } = __req("js/ui.js");
 const { openExpenseForm } = __req("js/views/expense-form.js");
@@ -3595,7 +3696,9 @@ function expenseRow(e) {
   return listItem({
     icon: cat.emoji,
     title: e.description,
-    subtitle: `${payer.name} · ${cat.name}${e.installment ? ` · cuota ${e.installment.n}/${e.installment.of}` : ''}`,
+    subtitle: `${payer.name} · ${cat.name}`
+      + (e.fx ? ` · ${fmtEn(e.fx.amountCents, e.fx.currency)}` : '')
+      + (e.installment ? ` · cuota ${e.installment.n}/${e.installment.of}` : ''),
     amount: e.amountCents,
     onClick: () => openExpenseForm(e),
   });
@@ -3616,7 +3719,7 @@ const { el, currentMonth, dateLabel, today } = __req("js/util.js");
 const store = __req("js/store.js");
 const { expensesOfMonth, sharesOf, toCsv } = __req("js/calc.js");
 const {
-  fmt, monthNav, listCard, listItem, emptyState, input, select, toast,
+  fmt, fmtEn, monthNav, listCard, listItem, emptyState, input, select, toast,
 } = __req("js/ui.js");
 const { openExpenseForm } = __req("js/views/expense-form.js");
 const { navigate } = __req("js/router.js");
@@ -3707,7 +3810,9 @@ function renderExpenses(root, params) {
         children.push(listItem({
           icon: cat.emoji,
           title: e.description,
-          subtitle: `Pagó ${payer.name} · te toca ${fmt(myShare)}${e.installment ? ` · cuota ${e.installment.n}/${e.installment.of}` : ''}`,
+          subtitle: `Pagó ${payer.name} · te toca ${fmt(myShare)}`
+            + (e.fx ? ` · ${fmtEn(e.fx.amountCents, e.fx.currency)}` : '')
+            + (e.installment ? ` · cuota ${e.installment.n}/${e.installment.of}` : ''),
           amount: e.amountCents,
           onClick: () => openExpenseForm(e),
         }));
@@ -4002,6 +4107,564 @@ function renderFixed(root, params) {
 Object.assign(__exports, { openFixedForm, renderFixed });
 };
 
+__defs["js/scan.js"] = (__exports, __req) => {
+/* Lectura de tickets: de una foto (o del texto pegado) a una lista de productos.
+ *
+ * La foto se manda a la API de Claude, que devuelve los renglones ya
+ * ordenados. Requiere una clave propia, que se carga en Ajustes y queda
+ * guardada sólo en este navegador — nunca se sube al repositorio ni viaja
+ * con la sincronización.
+ *
+ * Sin clave, el pegado de texto sigue funcionando: se parsea acá mismo, sin
+ * red y sin costo.
+ */
+
+const { config } = __req("js/store.js");
+const { toCents } = __req("js/util.js");
+
+const API_URL = 'https://api.anthropic.com/v1/messages';
+const MODELO = 'claude-opus-5';
+
+/* Lado largo máximo de la foto que mandamos. Los tickets tienen letra chica:
+   bajar de acá empieza a costar renglones mal leídos. */
+const LADO_MAXIMO = 2000;
+
+function tieneClave() {
+  return Boolean(config.anthropicKey);
+}
+
+/* ------------------------------------------------------------- la imagen */
+
+/**
+ * Reduce la foto antes de mandarla: una foto de celular pesa varios MB y
+ * tarda una eternidad en subir por datos móviles.
+ * @returns {Promise<{base64: string, mediaType: string}>}
+ */
+function prepararImagen(file) {
+  return new Promise((resolve, reject) => {
+    const lector = new FileReader();
+    lector.onerror = () => reject(new Error('No se pudo leer la foto.'));
+    lector.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('El archivo no parece una imagen.'));
+      img.onload = () => {
+        const escala = Math.min(1, LADO_MAXIMO / Math.max(img.width, img.height));
+        const w = Math.round(img.width * escala);
+        const h = Math.round(img.height * escala);
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+        resolve({ base64: dataUrl.split(',')[1], mediaType: 'image/jpeg' });
+      };
+      img.src = lector.result;
+    };
+    lector.readAsDataURL(file);
+  });
+}
+
+/* ------------------------------------------------------------ la llamada */
+
+const ESQUEMA = {
+  type: 'object',
+  properties: {
+    comercio: { type: 'string', description: 'Nombre del comercio, o cadena vacía si no se ve.' },
+    fecha: { type: 'string', description: 'Fecha del ticket en formato YYYY-MM-DD, o cadena vacía.' },
+    moneda: { type: 'string', enum: ['UYU', 'USD'], description: 'Moneda del ticket.' },
+    total: { type: 'number', description: 'Total pagado según el ticket. 0 si no se ve.' },
+    productos: {
+      type: 'array',
+      description: 'Un elemento por renglón de producto del ticket.',
+      items: {
+        type: 'object',
+        properties: {
+          nombre: { type: 'string', description: 'Nombre del producto tal como figura, en minúsculas salvo la inicial.' },
+          cantidad: { type: 'number', description: 'Unidades o kilos. 1 si el ticket no lo aclara.' },
+          precioTotal: { type: 'number', description: 'Lo que se pagó por ese renglón.' },
+        },
+        required: ['nombre', 'cantidad', 'precioTotal'],
+        additionalProperties: false,
+      },
+    },
+  },
+  required: ['comercio', 'fecha', 'moneda', 'total', 'productos'],
+  additionalProperties: false,
+};
+
+const INSTRUCCIONES = [
+  'Esta es la foto de un ticket de compra, casi siempre de un supermercado de Uruguay.',
+  'Extraé todos los renglones de productos con su precio.',
+  '',
+  'Tené en cuenta:',
+  '- Los precios usan coma decimal (1.234,56 son mil doscientos treinta y cuatro con 56).',
+  '- Devolvé los números como números, sin símbolos de moneda ni separadores de miles.',
+  '- "precioTotal" es lo que se pagó por ese renglón, no el precio unitario.',
+  '- Los renglones de descuento, ahorro o promoción van con precioTotal negativo.',
+  '- No incluyas subtotales, IVA, medios de pago, ni el total general en la lista de productos.',
+  '- Si un renglón está borroso o cortado, incluilo igual con lo que se llegue a leer.',
+  '- Si la foto no es un ticket, devolvé la lista de productos vacía y total 0.',
+].join('\n');
+
+/**
+ * Manda la foto a Claude y devuelve los productos leídos.
+ * @returns {Promise<{comercio, fecha, moneda, total, productos}>}
+ */
+async function leerTicket(file) {
+  if (!tieneClave()) throw new Error('Falta la clave de Claude. Se carga en Ajustes.');
+
+  const { base64, mediaType } = await prepararImagen(file);
+
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 120000);
+
+  let res;
+  try {
+    res = await fetch(API_URL, {
+      method: 'POST',
+      signal: ctrl.signal,
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': config.anthropicKey,
+        'anthropic-version': '2023-06-01',
+        // Sin esto el navegador no puede llamar a la API directamente.
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: MODELO,
+        max_tokens: 8000,
+        output_config: {
+          effort: 'low',
+          format: { type: 'json_schema', schema: ESQUEMA },
+        },
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 } },
+            { type: 'text', text: INSTRUCCIONES },
+          ],
+        }],
+      }),
+    });
+  } catch (err) {
+    if (err.name === 'AbortError') throw new Error('El ticket tardó demasiado. Probá con una foto más nítida.');
+    throw new Error('No se pudo conectar. Revisá que tengas internet.');
+  } finally {
+    clearTimeout(timer);
+  }
+
+  if (!res.ok) throw new Error(await describirError(res));
+
+  const data = await res.json();
+  if (data.stop_reason === 'refusal') {
+    throw new Error('La foto no se pudo procesar. Probá sacándola de nuevo, sólo del ticket.');
+  }
+  const texto = (data.content || []).find((b) => b.type === 'text')?.text;
+  if (!texto) throw new Error('La respuesta vino vacía. Probá de nuevo.');
+
+  let leido;
+  try {
+    leido = JSON.parse(texto);
+  } catch {
+    throw new Error('No se entendió la respuesta. Probá con otra foto.');
+  }
+  return normalizar(leido);
+}
+
+async function describirError(res) {
+  let detalle = '';
+  try {
+    const cuerpo = await res.json();
+    detalle = cuerpo?.error?.message || '';
+  } catch { /* sin cuerpo legible */ }
+
+  if (res.status === 401) return 'La clave de Claude no es válida. Revisala en Ajustes.';
+  if (res.status === 403) return 'La clave no tiene permiso para usar este modelo.';
+  if (res.status === 400 && /credit|balance/i.test(detalle)) return 'La cuenta de Claude no tiene saldo.';
+  if (res.status === 429) return 'Demasiados pedidos seguidos. Esperá un minuto y probá de nuevo.';
+  if (res.status >= 500) return 'La API de Claude está caída. Probá en un rato.';
+  return `No se pudo leer el ticket (error ${res.status})${detalle ? `: ${detalle.slice(0, 120)}` : ''}.`;
+}
+
+/* --------------------------------------------- pegar el texto del ticket */
+
+/**
+ * Salida de emergencia sin clave ni internet: muchos celulares copian el texto
+ * de una foto. Cada renglón se lee como "producto ... precio".
+ */
+function parsearTexto(texto) {
+  const productos = [];
+  const ignorar = /^(sub\s*total|total|iva|efectivo|cambio|vuelto|tarjeta|débito|debito|crédito|credito|cuf|rut|caj|ticket|gracias|nro|n°)/i;
+
+  String(texto || '').split(/\r?\n/).forEach((renglonCrudo) => {
+    const renglon = renglonCrudo.trim();
+    if (renglon.length < 3) return;
+    if (ignorar.test(renglon)) return;
+
+    // El precio es el último número del renglón.
+    const numeros = renglon.match(/-?\d{1,3}(?:[.\s]\d{3})*,\d{2}|-?\d+[.,]\d{2}|-?\d+/g);
+    if (!numeros || !numeros.length) return;
+    const precio = toCents(numeros[numeros.length - 1]);
+    if (!precio) return;
+
+    let nombre = renglon.slice(0, renglon.lastIndexOf(numeros[numeros.length - 1])).trim();
+    nombre = nombre.replace(/[x*·|-]+\s*$/i, '').trim();
+
+    // "2 x 45,00" al final del nombre: el primer número es la cantidad.
+    let cantidad = 1;
+    const conCantidad = nombre.match(/^(\d+(?:[.,]\d+)?)\s*[xX]?\s+(.+)$/);
+    if (conCantidad) {
+      cantidad = Number(conCantidad[1].replace(',', '.')) || 1;
+      nombre = conCantidad[2].trim();
+    }
+    if (nombre.length < 2) return;
+
+    productos.push({
+      nombre: nombre.charAt(0).toUpperCase() + nombre.slice(1).toLowerCase(),
+      cantidad,
+      precioTotal: precio / 100,
+    });
+  });
+
+  return normalizar({
+    comercio: '',
+    fecha: '',
+    moneda: 'UYU',
+    total: productos.reduce((s, p) => s + p.precioTotal, 0),
+    productos,
+  });
+}
+
+/* ---------------------------------------------------------- normalización */
+
+function normalizar(leido) {
+  const productos = (Array.isArray(leido.productos) ? leido.productos : [])
+    .map((p) => ({
+      nombre: String(p.nombre || '').trim().slice(0, 80),
+      cantidad: Number(p.cantidad) > 0 ? Number(p.cantidad) : 1,
+      precioCents: Math.round(Number(p.precioTotal || 0) * 100),
+    }))
+    .filter((p) => p.nombre);
+
+  const sumado = productos.reduce((s, p) => s + p.precioCents, 0);
+  const declarado = Math.round(Number(leido.total || 0) * 100);
+
+  return {
+    comercio: String(leido.comercio || '').trim().slice(0, 60),
+    fecha: /^\d{4}-\d{2}-\d{2}$/.test(leido.fecha || '') ? leido.fecha : '',
+    moneda: leido.moneda === 'USD' ? 'USD' : 'UYU',
+    // Si el total del ticket no se leyó, la suma de los renglones sirve igual.
+    totalCents: declarado > 0 ? declarado : sumado,
+    sumaCents: sumado,
+    productos,
+  };
+}
+
+Object.assign(__exports, { tieneClave, prepararImagen, leerTicket, parsearTexto });
+};
+
+__defs["js/views/scan-form.js"] = (__exports, __req) => {
+/* Escanear un ticket: foto → productos → gasto cargado. */
+
+const { el, toCents, fromCents, today, usdABase } = __req("js/util.js");
+const store = __req("js/store.js");
+const {
+  fmt, fmtEn, field, input, segmented, footerButtons, openSheet, closeSheet, toast,
+} = __req("js/ui.js");
+const { leerTicket, parsearTexto, tieneClave } = __req("js/scan.js");
+const { navigate } = __req("js/router.js");
+
+/* ------------------------------------------------------ elegir la entrada */
+
+function openScanForm() {
+  const fileInput = el('input', {
+    type: 'file',
+    accept: 'image/*',
+    capture: 'environment', // en el celular abre la cámara directo
+    class: 'hidden',
+    onchange: async (e) => {
+      const file = e.target.files[0];
+      e.target.value = '';
+      if (file) await escanear(file);
+    },
+  });
+
+  const body = el('div', {}, [
+    el('p', { class: 'muted small', style: 'margin-bottom:16px' },
+      'Sacale una foto al ticket y se cargan todos los productos de una. Que se vean los renglones completos y sin sombras.'),
+
+    el('button', {
+      class: 'btn btn--primary btn--block', type: 'button',
+      text: '📷 Sacar foto del ticket',
+      onclick: () => fileInput.click(),
+    }),
+    fileInput,
+
+    el('div', { class: 'divider' }),
+
+    el('button', {
+      class: 'btn btn--block', type: 'button',
+      text: '📝 Pegar el texto del ticket',
+      onclick: openPegarTexto,
+    }),
+    el('p', { class: 'field__hint', style: 'margin-top:8px' },
+      tieneClave()
+        ? 'Pegar el texto no usa internet ni consume saldo, pero lee peor que la foto.'
+        : 'La foto necesita una clave de Claude (se configura en Ajustes). Pegar el texto funciona sin nada.'),
+
+    !tieneClave() ? el('button', {
+      class: 'btn btn--block', type: 'button', style: 'margin-top:12px',
+      text: 'Configurar el escaneo por foto',
+      onclick: () => { closeSheet(); navigate('ajustes'); },
+    }) : null,
+  ]);
+
+  openSheet('Escanear ticket', body);
+}
+
+async function escanear(file) {
+  if (!tieneClave()) {
+    toast('Configurá la clave de Claude en Ajustes para escanear por foto.');
+    return;
+  }
+
+  openSheet('Leyendo el ticket…', el('div', { class: 'center', style: 'padding:26px 0' }, [
+    el('div', { class: 'iconbtn is-spinning', style: 'font-size:30px;width:auto;height:auto' }, [
+      el('span', { class: 'iconbtn__glyph', text: '⟳' }),
+    ]),
+    el('p', { class: 'muted small', style: 'margin-top:14px' },
+      'Puede tardar hasta un minuto según la señal.'),
+  ]));
+
+  try {
+    const leido = await leerTicket(file);
+    if (!leido.productos.length) {
+      openSheet('No se leyó nada', el('div', {}, [
+        el('p', { class: 'muted small' },
+          'No se encontraron productos en esa foto. Probá que entre el ticket completo, con buena luz y sin ángulo.'),
+        footerButtons('Probar de nuevo', () => openScanForm(), { secondaryLabel: 'Cerrar' }),
+      ]));
+      return;
+    }
+    openRevision(leido);
+  } catch (err) {
+    openSheet('No se pudo leer', el('div', {}, [
+      el('p', { class: 'muted small', text: err.message }),
+      footerButtons('Probar de nuevo', () => openScanForm(), { secondaryLabel: 'Cerrar' }),
+    ]));
+  }
+}
+
+function openPegarTexto() {
+  const area = el('textarea', {
+    class: 'textarea',
+    style: 'min-height:190px;font-family:ui-monospace,monospace;font-size:13px',
+    placeholder: 'COCA COLA 1.5L      89,00\nPAN CASERO 2 x 45,00   90,00\n…',
+  });
+
+  openSheet('Pegar el texto del ticket', el('div', {}, [
+    el('p', { class: 'muted small', style: 'margin-bottom:12px' },
+      'Muchos celulares copian el texto de una foto: mantené apretado sobre la imagen y elegí copiar. Pegalo acá.'),
+    field('Texto del ticket', area),
+    footerButtons('Leer', () => {
+      const leido = parsearTexto(area.value);
+      if (!leido.productos.length) {
+        toast('No se reconoció ningún renglón con precio.');
+        return;
+      }
+      openRevision(leido);
+    }),
+  ]));
+}
+
+/* ------------------------------------------------------------- revisión */
+
+function openRevision(leido) {
+  const roster = store.people();
+
+  // Cada renglón se puede editar y desmarcar antes de confirmar.
+  const filas = leido.productos.map((p) => ({ ...p, incluir: true }));
+
+  let moneda = leido.moneda;
+  let cotizacion = store.state.settings.usdRateCents || 0;
+  let payer = store.me().id;
+  let splitMode = 'equal';
+  let sumarALista = true;
+
+  const lista = el('div', { class: 'card card--flush', style: 'margin-bottom:12px' });
+  const totalInput = input({
+    class: 'input input--amount', type: 'text', inputmode: 'decimal',
+    'aria-label': 'Total de la compra',
+  });
+  const resumen = el('p', { class: 'field__hint' });
+  const cotizacionInput = input({
+    type: 'text', inputmode: 'decimal', placeholder: '40,00',
+    value: cotizacion ? String(cotizacion / 100).replace('.', ',') : '',
+    oninput: (e) => { cotizacion = toCents(e.target.value); pintarResumen(); },
+  });
+  const cotizacionWrap = el('div');
+
+  function sumaMarcada() {
+    return filas.filter((f) => f.incluir).reduce((s, f) => s + f.precioCents, 0);
+  }
+
+  function totalEnPesos() {
+    const escrito = toCents(totalInput.value);
+    return moneda === 'USD' ? usdABase(escrito, cotizacion) : escrito;
+  }
+
+  function pintarResumen() {
+    const marcados = filas.filter((f) => f.incluir).length;
+    const suma = sumaMarcada();
+    const total = totalEnPesos();
+    const diferencia = total - (moneda === 'USD' ? usdABase(suma, cotizacion) : suma);
+
+    resumen.replaceChildren(
+      `${marcados} de ${filas.length} productos · suman ${moneda === 'USD' ? fmtEn(suma, 'USD') : fmt(suma)}`,
+      Math.abs(diferencia) > 100
+        ? el('span', { style: 'display:block;margin-top:4px;color:var(--text-secondary)' },
+          `El total que cargás difiere en ${fmt(Math.abs(diferencia))} — puede ser por descuentos o renglones que no se leyeron.`)
+        : null,
+    );
+
+    cotizacionWrap.replaceChildren();
+    if (moneda === 'USD') {
+      cotizacionWrap.append(
+        field('Cotización del dólar', cotizacionInput),
+        el('p', { class: 'field__hint', style: 'margin-top:-8px' },
+          cotizacion ? `Se guarda como ${fmt(total)} en pesos.` : 'Falta la cotización.'),
+      );
+    }
+  }
+
+  function pintarLista() {
+    lista.replaceChildren();
+    filas.forEach((f, i) => {
+      const check = el('input', {
+        type: 'checkbox', class: 'shop__check', checked: f.incluir,
+        'aria-label': `Incluir ${f.nombre}`,
+        onchange: () => { f.incluir = !f.incluir; pintarLista(); pintarResumen(); },
+      });
+      const nombreInput = el('input', {
+        class: 'shop__name', value: f.nombre,
+        style: 'border:none;background:none;width:100%;font:inherit;color:inherit;padding:0',
+        oninput: (e) => { f.nombre = e.target.value; },
+      });
+      const precioInput = el('input', {
+        class: 'shop__price', inputmode: 'decimal',
+        value: String(fromCents(f.precioCents)).replace('.', ','),
+        style: 'border:none;background:none;width:88px;text-align:right;font:inherit;color:inherit;padding:0',
+        'aria-label': `Precio de ${f.nombre}`,
+        oninput: (e) => { filas[i].precioCents = toCents(e.target.value); pintarResumen(); },
+      });
+      lista.append(el('div', { class: `shop__item${f.incluir ? '' : ' is-done'}` }, [
+        check,
+        el('span', { class: 'shop__body' }, [
+          nombreInput,
+          f.cantidad && f.cantidad !== 1
+            ? el('span', { class: 'shop__meta', text: `${f.cantidad}` })
+            : null,
+        ]),
+        precioInput,
+      ]));
+    });
+  }
+
+  function guardar() {
+    const marcados = filas.filter((f) => f.incluir);
+    if (!marcados.length) { toast('No quedó ningún producto marcado.'); return; }
+    const totalPesos = totalEnPesos();
+    if (totalPesos <= 0) { toast('Poné cuánto pagaste.'); return; }
+    if (moneda === 'USD' && !cotizacion) { toast('Falta la cotización del dólar.'); return; }
+
+    const fx = moneda === 'USD'
+      ? { currency: 'USD', amountCents: toCents(totalInput.value), rateCents: cotizacion }
+      : null;
+    if (fx) store.setSettings({ usdRateCents: cotizacion });
+
+    store.add('expenses', {
+      date: leido.fecha || today(),
+      description: leido.comercio || `Compra (${marcados.length} productos)`,
+      amountCents: totalPesos,
+      fx,
+      categoryId: 'super',
+      paidBy: payer,
+      splitMode,
+      splitTo: splitMode === 'single' ? payer : null,
+      splitPct: null,
+      note: marcados.map((f) => f.nombre).join(', ').slice(0, 500),
+      createdAt: new Date().toISOString(),
+    });
+
+    if (sumarALista) {
+      // Quedan tildados: ya están comprados, y su precio sirve de referencia.
+      marcados.forEach((f) => {
+        store.add('shopping', {
+          name: f.nombre,
+          qty: f.cantidad || 1,
+          unit: '',
+          estPriceCents: 0,
+          done: true,
+          staple: false,
+          lastPriceCents: f.cantidad > 1 ? Math.round(f.precioCents / f.cantidad) : f.precioCents,
+        });
+      });
+    }
+
+    closeSheet();
+    toast(`Ticket cargado: ${fmt(totalPesos)} en ${marcados.length} productos.`);
+  }
+
+  const listaBox = el('input', { type: 'checkbox', class: 'switch__box', checked: sumarALista, onchange: (e) => { sumarALista = e.target.checked; } });
+
+  const body = el('div', {}, [
+    leido.comercio
+      ? el('p', { class: 'muted small', style: 'margin-bottom:12px', text: `Ticket de ${leido.comercio}${leido.fecha ? ` · ${leido.fecha}` : ''}` })
+      : el('p', { class: 'muted small', style: 'margin-bottom:12px', text: 'Revisá los renglones y corregí lo que haya salido mal.' }),
+
+    lista,
+    resumen,
+    el('div', { class: 'divider' }),
+
+    field('Total que pagaste', totalInput),
+    segmented([
+      { value: 'UYU', label: '$ Pesos' },
+      { value: 'USD', label: 'US$ Dólares' },
+    ], moneda, (v) => { moneda = v; pintarResumen(); }),
+    cotizacionWrap,
+
+    el('div', { style: 'height:13px' }),
+    field('¿Quién pagó?', segmented(roster.map((p) => ({ value: p.id, label: p.name })), payer, (v) => { payer = v; })),
+    field('División', segmented([
+      { value: 'equal', label: 'Mitad y mitad' },
+      { value: 'single', label: 'Lo banca quien pagó' },
+    ], 'equal', (v) => { splitMode = v; })),
+
+    el('label', { class: 'field' }, [
+      el('span', { class: 'switch' }, [
+        el('span', {}, [
+          el('span', { class: 'field__label', style: 'margin:0', text: 'Sumarlos a la lista de compras' }),
+          el('span', { class: 'field__hint', style: 'margin-top:2px', text: 'Quedan como comprados y con su precio, para estimar la próxima.' }),
+        ]),
+        listaBox,
+      ]),
+    ]),
+
+    footerButtons('Cargar el ticket', guardar, { secondaryLabel: 'Descartar' }),
+  ]);
+
+  pintarLista();
+  totalInput.value = String(fromCents(leido.totalCents)).replace('.', ',');
+  totalInput.addEventListener('input', pintarResumen);
+  pintarResumen();
+
+  openSheet(`${leido.productos.length} productos leídos`, body);
+}
+
+Object.assign(__exports, { openScanForm });
+};
+
 __defs["js/views/shopping.js"] = (__exports, __req) => {
 /* Lista de compras compartida: se marca en el súper y se cierra como gasto. */
 
@@ -4012,6 +4675,7 @@ const {
   fmt, emptyState, field, input, select, segmented, footerButtons,
   openSheet, closeSheet, toast, confirmSheet,
 } = __req("js/ui.js");
+const { openScanForm } = __req("js/views/scan-form.js");
 
 function itemPrice(item) {
   return (item.estPriceCents || item.lastPriceCents || 0) * (item.qty || 1);
@@ -4171,6 +4835,12 @@ function renderShopping(root) {
     quick.value = '';
     quick.focus();
   }
+
+  root.append(el('button', {
+    class: 'btn btn--block', type: 'button', style: 'margin-bottom:12px',
+    text: '📷 Escanear ticket',
+    onclick: openScanForm,
+  }));
 
   const card = el('section', { class: 'card card--flush' }, [
     el('div', { class: 'quickadd' }, [
@@ -4451,7 +5121,7 @@ const { el, toCents, fromCents, randomCode, download, today, currentMonth, month
 const store = __req("js/store.js");
 const { toCsv } = __req("js/calc.js");
 const {
-  fmt, listCard, listItem, field, input, select, segmented, footerButtons,
+  fmt, listCard, listItem, field, input, segmented, footerButtons,
   openSheet, closeSheet, toast, confirmSheet, avatar,
 } = __req("js/ui.js");
 const sync = __req("js/sync.js");
@@ -4459,17 +5129,6 @@ const { applyTheme } = __req("js/theme.js");
 const { navigate } = __req("js/router.js");
 const { openIncomeForm } = __req("js/views/dashboard.js");
 
-const CURRENCIES = [
-  { value: 'ARS', label: 'Peso argentino ($)' },
-  { value: 'USD', label: 'Dólar (US$)' },
-  { value: 'EUR', label: 'Euro (€)' },
-  { value: 'CLP', label: 'Peso chileno' },
-  { value: 'COP', label: 'Peso colombiano' },
-  { value: 'MXN', label: 'Peso mexicano' },
-  { value: 'UYU', label: 'Peso uruguayo' },
-  { value: 'PEN', label: 'Sol peruano' },
-  { value: 'BRL', label: 'Real brasileño' },
-];
 
 /* --------------------------------------------------------------- personas */
 
@@ -4538,6 +5197,38 @@ function openCategoryForm(existing = null) {
     footerButtons('Guardar', save, {
       extra: isEdit ? el('button', { class: 'btn btn--danger', type: 'button', text: 'Borrar', onclick: del }) : null,
     }),
+  ]));
+}
+
+/* --------------------------------------------------------- escaneo de tickets */
+
+function openClaveForm() {
+  const keyInput = input({
+    type: 'password', placeholder: 'sk-ant-…', value: store.config.anthropicKey || '',
+    autocapitalize: 'off', spellcheck: 'false', autocomplete: 'off',
+  });
+  const verBtn = el('button', {
+    class: 'linkbtn', type: 'button', text: 'Ver la clave',
+    onclick: () => {
+      const oculta = keyInput.type === 'password';
+      keyInput.type = oculta ? 'text' : 'password';
+      verBtn.textContent = oculta ? 'Ocultar la clave' : 'Ver la clave';
+    },
+  });
+
+  openSheet('Escaneo de tickets', el('div', {}, [
+    el('p', { class: 'muted small', style: 'margin-bottom:14px' },
+      'Para leer la foto de un ticket hace falta una clave de la API de Claude. Se saca en console.anthropic.com → API Keys, y se paga por lo que uses (leer un ticket cuesta centavos).'),
+    field('Clave de la API', keyInput, 'Queda guardada sólo en este navegador. No se sincroniza ni se sube a ningún lado.'),
+    el('div', { style: 'margin:-6px 0 12px' }, [verBtn]),
+    el('p', { class: 'field__hint' },
+      'Sin clave podés igual pegar el texto del ticket: lo lee la app sola, sin internet y sin costo.'),
+    footerButtons('Guardar', () => {
+      const clave = keyInput.value.trim();
+      store.saveConfig({ anthropicKey: clave });
+      closeSheet();
+      toast(clave ? 'Listo, ya podés escanear tickets.' : 'Escaneo por foto desactivado.');
+    }, { secondaryLabel: 'Cerrar' }),
   ]));
 }
 
@@ -4619,7 +5310,7 @@ function openShareCode() {
     }),
     navigator.share ? el('button', {
       class: 'btn btn--block', type: 'button', text: 'Compartir…', style: 'margin-top:8px',
-      onclick: () => navigator.share({ title: 'Nuestra Casa', url: link }).catch(() => {}),
+      onclick: () => navigator.share({ title: 'PochoHouse', url: link }).catch(() => {}),
     }) : null,
   ]));
 }
@@ -4677,9 +5368,14 @@ function renderSettings(root) {
   /* --- moneda y preferencias --- */
   root.append(el('section', { class: 'card' }, [
     el('div', { class: 'card__head' }, [el('h2', { class: 'card__title grow', text: 'Preferencias' })]),
-    field('Moneda', select(CURRENCIES, s.currency, {
-      onchange: (e) => { store.setSettings({ currency: e.target.value }); toast('Moneda actualizada.'); },
-    })),
+    field('Cotización del dólar', input({
+      type: 'text', inputmode: 'decimal', placeholder: '40,00',
+      value: s.usdRateCents ? String(s.usdRateCents / 100).replace('.', ',') : '',
+      onchange: (e) => {
+        store.setSettings({ usdRateCents: toCents(e.target.value) });
+        toast('Cotización guardada.');
+      },
+    }), 'Las cuentas son en pesos uruguayos. Esto sirve para cargar un gasto en dólares.'),
     field('División por defecto', segmented([
       { value: 'equal', label: 'Mitad y mitad' },
       { value: 'single', label: 'Lo paga quien carga' },
@@ -4739,6 +5435,24 @@ function renderSettings(root) {
     ]),
   ]));
 
+  /* --- escaneo de tickets --- */
+  const claveCargada = Boolean(store.config.anthropicKey);
+  root.append(el('section', { class: 'card' }, [
+    el('div', { class: 'card__head' }, [
+      el('h2', { class: 'card__title grow', text: 'Escanear tickets' }),
+      el('span', { class: `tag ${claveCargada ? 'tag--good' : ''}`, text: claveCargada ? 'Activado' : 'Sin configurar' }),
+    ]),
+    el('p', { class: 'muted small', style: 'margin-bottom:12px' },
+      claveCargada
+        ? 'Sacás una foto del ticket en Compras y se cargan todos los productos.'
+        : 'Con una clave de Claude podés sacarle una foto al ticket del súper y que se carguen todos los productos solos.'),
+    el('button', {
+      class: `btn ${claveCargada ? '' : 'btn--primary'} btn--block`, type: 'button',
+      text: claveCargada ? 'Cambiar la clave' : 'Configurar el escaneo',
+      onclick: openClaveForm,
+    }),
+  ]));
+
   /* --- copias de seguridad --- */
   const fileInput = el('input', {
     type: 'file', accept: 'application/json', class: 'hidden',
@@ -4763,7 +5477,7 @@ function renderSettings(root) {
       el('button', {
         class: 'btn btn--block', type: 'button', text: '⬇ Descargar backup (JSON)',
         onclick: () => {
-          const ok = download(`nuestra-casa-${today()}.json`, store.exportData());
+          const ok = download(`pochohouse-${today()}.json`, store.exportData());
           toast(ok ? 'Backup descargado.' : SIN_DESCARGA);
         },
       }),
@@ -4811,7 +5525,7 @@ function renderSettings(root) {
   root.append(el('p', {
     class: 'muted small center',
     style: 'margin:18px 0 8px',
-    text: 'Nuestra Casa · funciona sin internet · los datos son suyos',
+    text: 'PochoHouse · funciona sin internet · los datos son suyos',
   }));
 }
 
@@ -4824,29 +5538,17 @@ __defs["js/views/onboarding.js"] = (__exports, __req) => {
 const { el, toCents, currentMonth, monthLabel } = __req("js/util.js");
 const store = __req("js/store.js");
 const {
-  field, input, select, segmented, footerButtons, openSheet, closeSheet, toast, avatar,
+  field, input, segmented, footerButtons, openSheet, closeSheet, toast, avatar,
 } = __req("js/ui.js");
 const { navigate } = __req("js/router.js");
 
-const CURRENCIES = [
-  { value: 'ARS', label: 'Peso argentino ($)' },
-  { value: 'USD', label: 'Dólar (US$)' },
-  { value: 'EUR', label: 'Euro (€)' },
-  { value: 'CLP', label: 'Peso chileno' },
-  { value: 'COP', label: 'Peso colombiano' },
-  { value: 'MXN', label: 'Peso mexicano' },
-  { value: 'UYU', label: 'Peso uruguayo' },
-  { value: 'PEN', label: 'Sol peruano' },
-  { value: 'BRL', label: 'Real brasileño' },
-];
 
 function openOnboarding() {
   const roster = store.people();
   const mes = currentMonth();
   let meId = roster[0].id;
 
-  const currencySel = select(CURRENCIES, store.state.settings.currency);
-  const demoBox = input({ type: 'checkbox', class: 'switch__box', checked: Boolean(window.__nuestraCasaPreview) });
+  const demoBox = input({ type: 'checkbox', class: 'switch__box', checked: Boolean(window.__pochoHousePreview) });
 
   const sueldos = new Map();
   const camposSueldo = roster.map((p) => {
@@ -4865,7 +5567,7 @@ function openOnboarding() {
   });
 
   function finish() {
-    store.setSettings({ currency: currencySel.value, defaultPayer: meId });
+    store.setSettings({ defaultPayer: meId });
     store.saveConfig({ meId, onboarded: true });
     roster.forEach((p) => {
       const cents = toCents(sueldos.get(p.id).value);
@@ -4891,8 +5593,6 @@ function openOnboarding() {
       meId,
       (v) => { meId = v; },
     ), 'Sirve para que cargues gastos con un toque menos.'),
-
-    field('Moneda', currencySel),
 
     el('div', { class: 'divider' }),
     el('p', { class: 'field__label', text: `Sueldo líquido de ${monthLabel(mes, store.state.settings.locale)}` }),
@@ -5104,3 +5804,5 @@ window.addEventListener('hashchange', closeSheet);
 __req("js/app.js");
 })();
 </script>
+</body>
+</html>

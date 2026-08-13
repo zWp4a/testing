@@ -1,6 +1,6 @@
 {
-  "name": "Nuestra Casa — Gastos compartidos",
-  "short_name": "Nuestra Casa",
+  "name": "PochoHouse — Gastos compartidos",
+  "short_name": "PochoHouse",
   "description": "Gastos del hogar, cuentas claras entre dos y lista de compras. Funciona sin conexión.",
   "start_url": "./index.html",
   "scope": "./",

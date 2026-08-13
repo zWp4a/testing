@@ -26,7 +26,7 @@ const ENTRY = 'js/app.js';
 const args = process.argv.slice(2);
 const FRAGMENT = args.includes('--fragmento');
 const OUT = args.find((a) => !a.startsWith('--'))
-  || resolve(ROOT, FRAGMENT ? 'dist/nuestra-casa-fragmento.html' : 'dist/nuestra-casa.html');
+  || resolve(ROOT, FRAGMENT ? 'dist/pochohouse-fragmento.html' : 'dist/pochohouse.html');
 
 const read = (rel) => readFileSync(resolve(ROOT, rel), 'utf8');
 
@@ -125,10 +125,10 @@ if (FRAGMENT) {
     .replace('<script type="module" src="js/app.js"></script>', '')
     .trim();
   html = [
-    '<title>Nuestra Casa</title>',
+    '<title>PochoHouse</title>',
     `<style>\n${css}\n</style>`,
     body,
-    '<script>window.__nuestraCasaPreview = true;</script>',
+    '<script>window.__pochoHousePreview = true;</script>',
     `<script>\n${bundle}\n</script>`,
   ].join('\n\n');
 } else {

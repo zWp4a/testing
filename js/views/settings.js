@@ -4,7 +4,7 @@ import { el, toCents, fromCents, randomCode, download, today, currentMonth, mont
 import * as store from '../store.js';
 import { toCsv } from '../calc.js';
 import {
-  fmt, listCard, listItem, field, input, select, segmented, footerButtons,
+  fmt, listCard, listItem, field, input, segmented, footerButtons,
   openSheet, closeSheet, toast, confirmSheet, avatar,
 } from '../ui.js';
 import * as sync from '../sync.js';
@@ -12,17 +12,6 @@ import { applyTheme } from '../theme.js';
 import { navigate } from '../router.js';
 import { openIncomeForm } from './dashboard.js';
 
-const CURRENCIES = [
-  { value: 'ARS', label: 'Peso argentino ($)' },
-  { value: 'USD', label: 'Dólar (US$)' },
-  { value: 'EUR', label: 'Euro (€)' },
-  { value: 'CLP', label: 'Peso chileno' },
-  { value: 'COP', label: 'Peso colombiano' },
-  { value: 'MXN', label: 'Peso mexicano' },
-  { value: 'UYU', label: 'Peso uruguayo' },
-  { value: 'PEN', label: 'Sol peruano' },
-  { value: 'BRL', label: 'Real brasileño' },
-];
 
 /* --------------------------------------------------------------- personas */
 
@@ -91,6 +80,38 @@ function openCategoryForm(existing = null) {
     footerButtons('Guardar', save, {
       extra: isEdit ? el('button', { class: 'btn btn--danger', type: 'button', text: 'Borrar', onclick: del }) : null,
     }),
+  ]));
+}
+
+/* --------------------------------------------------------- escaneo de tickets */
+
+function openClaveForm() {
+  const keyInput = input({
+    type: 'password', placeholder: 'sk-ant-…', value: store.config.anthropicKey || '',
+    autocapitalize: 'off', spellcheck: 'false', autocomplete: 'off',
+  });
+  const verBtn = el('button', {
+    class: 'linkbtn', type: 'button', text: 'Ver la clave',
+    onclick: () => {
+      const oculta = keyInput.type === 'password';
+      keyInput.type = oculta ? 'text' : 'password';
+      verBtn.textContent = oculta ? 'Ocultar la clave' : 'Ver la clave';
+    },
+  });
+
+  openSheet('Escaneo de tickets', el('div', {}, [
+    el('p', { class: 'muted small', style: 'margin-bottom:14px' },
+      'Para leer la foto de un ticket hace falta una clave de la API de Claude. Se saca en console.anthropic.com → API Keys, y se paga por lo que uses (leer un ticket cuesta centavos).'),
+    field('Clave de la API', keyInput, 'Queda guardada sólo en este navegador. No se sincroniza ni se sube a ningún lado.'),
+    el('div', { style: 'margin:-6px 0 12px' }, [verBtn]),
+    el('p', { class: 'field__hint' },
+      'Sin clave podés igual pegar el texto del ticket: lo lee la app sola, sin internet y sin costo.'),
+    footerButtons('Guardar', () => {
+      const clave = keyInput.value.trim();
+      store.saveConfig({ anthropicKey: clave });
+      closeSheet();
+      toast(clave ? 'Listo, ya podés escanear tickets.' : 'Escaneo por foto desactivado.');
+    }, { secondaryLabel: 'Cerrar' }),
   ]));
 }
 
@@ -172,7 +193,7 @@ function openShareCode() {
     }),
     navigator.share ? el('button', {
       class: 'btn btn--block', type: 'button', text: 'Compartir…', style: 'margin-top:8px',
-      onclick: () => navigator.share({ title: 'Nuestra Casa', url: link }).catch(() => {}),
+      onclick: () => navigator.share({ title: 'PochoHouse', url: link }).catch(() => {}),
     }) : null,
   ]));
 }
@@ -230,9 +251,14 @@ export function renderSettings(root) {
   /* --- moneda y preferencias --- */
   root.append(el('section', { class: 'card' }, [
     el('div', { class: 'card__head' }, [el('h2', { class: 'card__title grow', text: 'Preferencias' })]),
-    field('Moneda', select(CURRENCIES, s.currency, {
-      onchange: (e) => { store.setSettings({ currency: e.target.value }); toast('Moneda actualizada.'); },
-    })),
+    field('Cotización del dólar', input({
+      type: 'text', inputmode: 'decimal', placeholder: '40,00',
+      value: s.usdRateCents ? String(s.usdRateCents / 100).replace('.', ',') : '',
+      onchange: (e) => {
+        store.setSettings({ usdRateCents: toCents(e.target.value) });
+        toast('Cotización guardada.');
+      },
+    }), 'Las cuentas son en pesos uruguayos. Esto sirve para cargar un gasto en dólares.'),
     field('División por defecto', segmented([
       { value: 'equal', label: 'Mitad y mitad' },
       { value: 'single', label: 'Lo paga quien carga' },
@@ -292,6 +318,24 @@ export function renderSettings(root) {
     ]),
   ]));
 
+  /* --- escaneo de tickets --- */
+  const claveCargada = Boolean(store.config.anthropicKey);
+  root.append(el('section', { class: 'card' }, [
+    el('div', { class: 'card__head' }, [
+      el('h2', { class: 'card__title grow', text: 'Escanear tickets' }),
+      el('span', { class: `tag ${claveCargada ? 'tag--good' : ''}`, text: claveCargada ? 'Activado' : 'Sin configurar' }),
+    ]),
+    el('p', { class: 'muted small', style: 'margin-bottom:12px' },
+      claveCargada
+        ? 'Sacás una foto del ticket en Compras y se cargan todos los productos.'
+        : 'Con una clave de Claude podés sacarle una foto al ticket del súper y que se carguen todos los productos solos.'),
+    el('button', {
+      class: `btn ${claveCargada ? '' : 'btn--primary'} btn--block`, type: 'button',
+      text: claveCargada ? 'Cambiar la clave' : 'Configurar el escaneo',
+      onclick: openClaveForm,
+    }),
+  ]));
+
   /* --- copias de seguridad --- */
   const fileInput = el('input', {
     type: 'file', accept: 'application/json', class: 'hidden',
@@ -316,7 +360,7 @@ export function renderSettings(root) {
       el('button', {
         class: 'btn btn--block', type: 'button', text: '⬇ Descargar backup (JSON)',
         onclick: () => {
-          const ok = download(`nuestra-casa-${today()}.json`, store.exportData());
+          const ok = download(`pochohouse-${today()}.json`, store.exportData());
           toast(ok ? 'Backup descargado.' : SIN_DESCARGA);
         },
       }),
@@ -364,6 +408,6 @@ export function renderSettings(root) {
   root.append(el('p', {
     class: 'muted small center',
     style: 'margin:18px 0 8px',
-    text: 'Nuestra Casa · funciona sin internet · los datos son suyos',
+    text: 'PochoHouse · funciona sin internet · los datos son suyos',
   }));
 }

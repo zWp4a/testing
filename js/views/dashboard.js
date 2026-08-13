@@ -7,7 +7,7 @@ import {
   fixedStatus, budgetStatus, goalProgress, monthBudget,
 } from '../calc.js';
 import {
-  fmt, monthNav, barList, trendChart, splitBar, listCard, listItem, emptyState,
+  fmt, fmtEn, monthNav, barList, trendChart, splitBar, listCard, listItem, emptyState,
   openSheet, closeSheet, field, input, select, footerButtons, toast, avatar,
 } from '../ui.js';
 import { openExpenseForm } from './expense-form.js';
@@ -418,7 +418,9 @@ export function expenseRow(e) {
   return listItem({
     icon: cat.emoji,
     title: e.description,
-    subtitle: `${payer.name} · ${cat.name}${e.installment ? ` · cuota ${e.installment.n}/${e.installment.of}` : ''}`,
+    subtitle: `${payer.name} · ${cat.name}`
+      + (e.fx ? ` · ${fmtEn(e.fx.amountCents, e.fx.currency)}` : '')
+      + (e.installment ? ` · cuota ${e.installment.n}/${e.installment.of}` : ''),
     amount: e.amountCents,
     onClick: () => openExpenseForm(e),
   });

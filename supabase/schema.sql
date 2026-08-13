@@ -1,5 +1,5 @@
 -- =====================================================================
---  Nuestra Casa — base para sincronizar entre celulares
+--  PochoHouse — base para sincronizar entre celulares
 --
 --  Cómo usarlo:
 --   1. Entrá a https://supabase.com y creá un proyecto gratis.

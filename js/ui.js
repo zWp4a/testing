@@ -17,6 +17,11 @@ export function fmtShort(cents) {
   return fmt(cents, { compact: true, cents: false });
 }
 
+/** Formatea en una moneda distinta de la base (para mostrar el importe original). */
+export function fmtEn(cents, currency) {
+  return money(cents, { locale: state.settings.locale || 'es-UY', currency });
+}
+
 /* ------------------------------------------------------------- hoja modal */
 
 const sheetEl = document.getElementById('sheet');

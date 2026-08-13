@@ -1,4 +1,4 @@
-# 🏡 Nuestra Casa
+# 🏡 PochoHouse
 
 App de gastos compartidos para **Posolo y Posola**. Se abre desde la compu o
 desde el celular, se instala como una app y **funciona sin internet**.
@@ -39,9 +39,9 @@ carga como gasto**: ya está descontado del líquido.
 | **Resumen** | Cuánto queda del sueldo (en total y de cada uno), balance entre los dos, vencimientos próximos, gasto por categoría y tendencia de 6 meses. |
 | **Gastos** | Todos los movimientos del mes, agrupados por día, con búsqueda y filtros. Exportable a CSV. |
 | **Fijos** | Expensas, luz, gas, internet, suscripciones. Se cargan una vez y la app los recuerda cada mes con su vencimiento. |
-| **Compras** | Lista compartida para el súper. Se marca en la góndola y al final se convierte en un gasto de un toque. |
+| **Compras** | Lista compartida para el súper. Se marca en la góndola y al final se convierte en un gasto de un toque. También se le puede **sacar una foto al ticket** y que cargue todo solo. |
 | **Metas** | Ahorro para un viaje, la mudanza o el fondo de imprevistos, con lo que puso cada uno. |
-| **Ajustes** | Sueldos, moneda, categorías, presupuestos, sincronización y backups. |
+| **Ajustes** | Sueldos, cotización del dólar, categorías, presupuestos, escaneo de tickets, sincronización y backups. |
 
 Algunas cosas útiles que quizás no esperabas:
 
@@ -63,6 +63,44 @@ Algunas cosas útiles que quizás no esperabas:
 Los importes se guardan en centavos enteros, así que las divisiones nunca pierden
 ni inventan un centavo.
 
+### Pesos y dólares
+
+La cuenta es siempre **en pesos uruguayos**. Cuando algo se paga en dólares, en
+el formulario se elige `US$ Dólares`, se pone la cotización y la app guarda el
+gasto convertido a pesos, recordando también el monto original en dólares y a
+qué cambio se hizo. Así los totales, los balances y los gráficos son siempre
+comparables, y en la lista de gastos se sigue viendo `US$ 40,00` al lado del
+importe en pesos.
+
+La última cotización usada queda guardada y se ofrece sola la próxima vez; se
+puede cambiar cuando quieras desde **Ajustes → Cotización del dólar**.
+
+### Escanear el ticket del súper
+
+En **Compras → Escanear ticket** hay dos caminos:
+
+- **📷 Sacar foto del ticket** — se manda la foto a Claude, que devuelve los
+  renglones ya separados en producto, cantidad y precio. Es lo más cómodo:
+  una compra de 40 productos queda cargada en un toque.
+- **📝 Pegar el texto del ticket** — muchos celulares copian el texto de una
+  foto (mantener apretado sobre la imagen → copiar). Se pega y la app lo
+  interpreta **acá mismo, sin internet y sin costo**. Lee peor que la foto,
+  pero siempre está disponible.
+
+En los dos casos aparece una pantalla de revisión: se puede corregir cualquier
+nombre o precio, destildar lo que no va, y la app avisa si la suma de los
+renglones no coincide con el total (suele ser por descuentos o por algún
+renglón que no se llegó a leer). Al confirmar se carga **un gasto** con el
+total, y opcionalmente se suman los productos a la lista de compras como ya
+comprados, con su precio, para estimar mejor la próxima vez.
+
+La foto necesita una clave propia de Claude, que se carga en **Ajustes →
+Escanear tickets con foto** y se saca en
+[console.anthropic.com](https://console.anthropic.com). Cada ticket cuesta
+fracciones de centavo de dólar. **La clave queda guardada sólo en el navegador
+de ese teléfono**: no se sincroniza, no entra en el backup y no está en este
+repositorio.
+
 ---
 
 ## Cómo usarla
@@ -79,7 +117,7 @@ https://<tu-usuario>.github.io/<repo>/
 Esa dirección se abre igual desde la compu y desde cualquier celular.
 
 > ¿No querés publicarla todavía? Hay una **versión de un solo archivo** en
-> [`dist/nuestra-casa.html`](dist/nuestra-casa.html): la descargás, la abrís con
+> [`dist/pochohouse.html`](dist/pochohouse.html): la descargás, la abrís con
 > doble clic y funciona. Sirve para probarla en la compu en 10 segundos, pero no
 > se instala ni sincroniza — para eso usá la versión publicada.
 >
@@ -113,8 +151,13 @@ volver del segundo plano, cada minuto mientras la tenés en pantalla y cada vez
 que cargás algo. Si no hay señal, guarda igual y sube cuando vuelve.
 
 **Sobre la privacidad**: el código del hogar es un valor aleatorio de 128 bits y
-funciona como contraseña. No lo publiques ni subas las claves al repositorio: se
-guardan sólo en el navegador de cada uno.
+funciona como contraseña. No lo publiques ni subas las claves al repositorio.
+
+Todo lo que es secreto — el código del hogar, la URL y la clave anon de
+Supabase, y la clave de Claude — vive **sólo en el `localStorage` de cada
+navegador**, bajo `pochohouse.config.v1`. No se versiona, no se sube a Supabase
+con la sincronización y no se incluye en el backup JSON: si cambiás de
+teléfono, esos cuatro valores se vuelven a cargar a mano.
 
 ---
 
@@ -141,14 +184,16 @@ js/
   store.js              Estado, guardado local y CRUD
   calc.js               Balances, reparto, resúmenes, vencimientos
   sync.js               Sincronización con Supabase (REST, sin SDK)
+  scan.js               Lectura de tickets: foto a Claude, o texto pegado
   ui.js                 Piezas de interfaz: hoja modal, avisos, gráficos
-  util.js               Dinero en centavos, fechas, helpers de DOM
+  util.js               Dinero en centavos, fechas, cambio de moneda, DOM
   theme.js              Claro / oscuro / automático
   views/                Una pantalla por archivo
 sw.js                   Service worker (funciona sin conexión)
 manifest.webmanifest    Datos para instalarla como app
 supabase/schema.sql     Script para la base compartida
 tools/make-icons.py     Genera los PNG del ícono sin dependencias
+tools/build-single.mjs  Empaqueta todo en un solo HTML
 ```
 
 Sin build, sin npm install, sin frameworks: son archivos estáticos que el
@@ -174,6 +219,13 @@ navegador abre tal cual.
   que no se dupliquen si los dos cargan el mismo sueldo a la vez. Si un mes no
   tiene nada cargado, se arrastra el último conocido.
 - **Meses cortos**: un fijo que vence el 31 cae el 28 en febrero.
+- **Moneda**: la base es el peso uruguayo. Un gasto en dólares guarda su monto
+  en pesos y además `fx: {currency, amountCents, rateCents}`, así queda
+  registrado a qué cambio se hizo aunque el dólar se mueva después.
+- **Escaneo de tickets**: la foto se reduce a 2000px de lado antes de subirla
+  y se pide la respuesta con un esquema JSON fijo, así siempre vuelve la misma
+  forma. Sin clave, el pegado de texto se parsea localmente con expresiones
+  regulares: sirve de salida de emergencia sin red.
 - **Accesibilidad**: objetivos táctiles de 44px, foco visible, `aria-label` en los
   gráficos y respeto por `prefers-reduced-motion`.
 
@@ -184,8 +236,12 @@ navegador abre tal cual.
 ```bash
 npx http-server -p 8080 -c-1     # servidor local
 python3 tools/make-icons.py      # regenerar los íconos
-node tools/build-single.mjs      # regenerar dist/nuestra-casa.html
+node tools/build-single.mjs      # regenerar dist/pochohouse.html
 ```
+
+Si venías usando la versión anterior (se llamaba "Nuestra Casa"), no hay nada
+que hacer: al abrirla, los datos guardados con el nombre viejo se copian solos
+a las claves nuevas.
 
 Para que un cambio de CSS o JS se vea en un teléfono donde ya la instalaste,
 subí el número de `VERSION` en `sw.js`: eso invalida la caché vieja.

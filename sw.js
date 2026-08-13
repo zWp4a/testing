@@ -2,8 +2,8 @@
  * Estrategia: cache-first para los archivos propios, red para todo lo demás.
  */
 
-const VERSION = 'v1';
-const CACHE = `nuestra-casa-${VERSION}`;
+const VERSION = 'v2';
+const CACHE = `pochohouse-${VERSION}`;
 
 const ASSETS = [
   './',
@@ -17,6 +17,7 @@ const ASSETS = [
   'js/util.js',
   'js/sync.js',
   'js/theme.js',
+  'js/scan.js',
   'js/views/dashboard.js',
   'js/views/expenses.js',
   'js/views/expense-form.js',
@@ -25,6 +26,7 @@ const ASSETS = [
   'js/views/goals.js',
   'js/views/settings.js',
   'js/views/onboarding.js',
+  'js/views/scan-form.js',
   'manifest.webmanifest',
   'icons/icon.svg',
   'icons/icon-192.png',

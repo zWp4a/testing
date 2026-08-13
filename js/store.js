@@ -6,8 +6,20 @@
 
 import { uid, nowIso, currentMonth } from './util.js';
 
-const KEY = 'nuestracasa.v1';
-const CONFIG_KEY = 'nuestracasa.config.v1'; // no se sincroniza (claves y prefs del dispositivo)
+const KEY = 'pochohouse.v1';
+const CONFIG_KEY = 'pochohouse.config.v1'; // no se sincroniza (claves y prefs del dispositivo)
+const KEY_ANTERIOR = 'nuestracasa.v1';           // la app se llamaba así antes
+const CONFIG_KEY_ANTERIOR = 'nuestracasa.config.v1';
+
+/** Lee la clave nueva; si no está, rescata la del nombre anterior. */
+function leerClave(nueva, vieja) {
+  const actual = localStorage.getItem(nueva);
+  if (actual !== null) return actual;
+  const previa = localStorage.getItem(vieja);
+  if (previa === null) return null;
+  try { localStorage.setItem(nueva, previa); } catch { /* seguimos con lo leído */ }
+  return previa;
+}
 
 export const COLLECTIONS = ['expenses', 'fixed', 'shopping', 'goals', 'settlements', 'categories', 'people', 'incomes'];
 
@@ -53,11 +65,13 @@ function freshState() {
   return {
     version: 1,
     settings: {
-      currency: 'ARS',
-      locale: 'es-AR',
+      currency: 'UYU',
+      locale: 'es-UY',
+      // Cotización del dólar en centésimos: 4025 = 40,25 UYU por dólar.
+      usdRateCents: 0,
       defaultPayer: people[0].id,
       defaultSplit: 'equal',
-      homeName: 'Nuestra Casa',
+      homeName: 'PochoHouse',
       updatedAt: ts,
     },
     people,
@@ -75,7 +89,7 @@ function freshState() {
 
 function readLocal() {
   try {
-    const raw = localStorage.getItem(KEY);
+    const raw = leerClave(KEY, KEY_ANTERIOR);
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     return migrate(parsed);
@@ -112,7 +126,7 @@ export const state = readLocal() || freshState();
 /* Config del dispositivo: no viaja en el backup ni en la nube. */
 function readConfig() {
   try {
-    return JSON.parse(localStorage.getItem(CONFIG_KEY)) || {};
+    return JSON.parse(leerClave(CONFIG_KEY, CONFIG_KEY_ANTERIOR)) || {};
   } catch {
     return {};
   }
@@ -122,6 +136,7 @@ export const config = {
   theme: 'auto',
   supabaseUrl: '',
   supabaseKey: '',
+  anthropicKey: '',   // sólo para leer tickets; nunca sale de este navegador
   spaceId: '',
   meId: '',
   autoSync: true,
@@ -312,7 +327,7 @@ export function me() {
 
 export function exportData() {
   return JSON.stringify({
-    app: 'nuestra-casa',
+    app: 'pochohouse',
     version: state.version,
     exportedAt: nowIso(),
     data: {
