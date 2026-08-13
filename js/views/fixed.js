@@ -22,7 +22,7 @@ export function openFixedForm(existing = null) {
   const draft = existing ? { ...existing } : {
     name: '',
     amountCents: 0,
-    categoryId: 'alquiler',
+    categoryId: 'expensas',
     dayOfMonth: 1,
     paidBy: store.me().id,
     splitMode: 'equal',
@@ -32,7 +32,7 @@ export function openFixedForm(existing = null) {
     variable: false,
   };
 
-  const nameInput = input({ type: 'text', placeholder: 'Alquiler, Edenor, Netflix…', value: draft.name });
+  const nameInput = input({ type: 'text', placeholder: 'Edenor, expensas, Netflix…', value: draft.name });
   const amountInput = input({
     class: 'input input--amount', type: 'text', inputmode: 'decimal',
     value: draft.amountCents ? String(fromCents(draft.amountCents)).replace('.', ',') : '',
@@ -186,7 +186,7 @@ export function renderFixed(root, params) {
   if (!rows.length) {
     root.append(el('section', { class: 'card' }, [
       emptyState('📅', 'Sin gastos fijos cargados',
-        'Cargá el alquiler, las expensas y los servicios una vez y la app te los recuerda todos los meses.',
+        'Cargá las expensas y los servicios una vez y la app te los recuerda todos los meses.',
         'Agregar el primero', () => openFixedForm()),
     ]));
     return;

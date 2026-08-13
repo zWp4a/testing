@@ -1,13 +1,34 @@
 # 🏡 Nuestra Casa
 
-App de gastos compartidos para una pareja que vive junta. Se abre desde la
-compu o desde el celular, se instala como una app y **funciona sin internet**.
+App de gastos compartidos para **Posolo y Posola**. Se abre desde la compu o
+desde el celular, se instala como una app y **funciona sin internet**.
 
-Está pensada para responder tres preguntas de todos los meses:
+Está pensada para responder cuatro preguntas de todos los meses:
 
+- ¿Cuánto nos queda, a cada uno y a los dos?
 - ¿Cuánto gastamos y en qué?
 - ¿Quién le debe a quién y cuánto?
 - ¿Qué falta pagar y qué falta comprar?
+
+## Cómo funciona la cuenta
+
+Se carga el **sueldo líquido de cada uno, ya con el alquiler descontado**
+(porque el alquiler se descuenta directamente del sueldo, no se paga aparte).
+De ahí en más los gastos se van restando y siempre está a la vista cuánto
+queda:
+
+```
+Nos queda   = sueldo de Posolo + sueldo de Posola − gastos del mes
+Le queda a  = su sueldo − la parte que le toca de cada gasto
+```
+
+Se descuenta **la parte que le toca** a cada uno, no lo que puso de su
+bolsillo: las diferencias se emparejan en el balance de "Entre ustedes". Por
+eso lo que le queda a uno más lo que le queda al otro da siempre el total.
+
+El sueldo se carga una vez y **se arrastra solo** a los meses siguientes; si
+un mes cobran distinto, se cambia y listo. Por lo mismo, **el alquiler no se
+carga como gasto**: ya está descontado del líquido.
 
 ---
 
@@ -15,12 +36,12 @@ Está pensada para responder tres preguntas de todos los meses:
 
 | Pantalla | Para qué sirve |
 |---|---|
-| **Resumen** | Balance entre los dos, total del mes, vencimientos próximos, gasto por categoría y tendencia de 6 meses. |
+| **Resumen** | Cuánto queda del sueldo (en total y de cada uno), balance entre los dos, vencimientos próximos, gasto por categoría y tendencia de 6 meses. |
 | **Gastos** | Todos los movimientos del mes, agrupados por día, con búsqueda y filtros. Exportable a CSV. |
-| **Fijos** | Alquiler, expensas, luz, gas, internet, suscripciones. Se cargan una vez y la app los recuerda cada mes con su vencimiento. |
+| **Fijos** | Expensas, luz, gas, internet, suscripciones. Se cargan una vez y la app los recuerda cada mes con su vencimiento. |
 | **Compras** | Lista compartida para el súper. Se marca en la góndola y al final se convierte en un gasto de un toque. |
 | **Metas** | Ahorro para un viaje, la mudanza o el fondo de imprevistos, con lo que puso cada uno. |
-| **Ajustes** | Nombres, moneda, categorías, presupuestos, sincronización y backups. |
+| **Ajustes** | Sueldos, moneda, categorías, presupuestos, sincronización y backups. |
 
 Algunas cosas útiles que quizás no esperabas:
 
@@ -33,6 +54,8 @@ Algunas cosas útiles que quizás no esperabas:
 - **Presupuesto por categoría**: la barra se pone amarilla al 80% y roja al pasarse.
 - **Saldar cuentas**: cuando uno le transfiere al otro, lo registrás y el balance
   vuelve a cero.
+- **Proyección de los fijos**: además de lo que queda hoy, te dice con cuánto
+  quedarían después de pagar los fijos que faltan.
 - **Productos habituales**: leche, pan y café vuelven solos a la lista cada mes.
 - **Precio estimado del carrito** antes de ir al súper, usando lo que salió la vez pasada.
 - **Deshacer** en todo lo que se borra, backup en JSON y exportación a CSV.
@@ -144,6 +167,12 @@ navegador abre tal cual.
   tocan gastos distintos al mismo tiempo, se conservan los dos.
 - **Fechas locales**: se guardan como `YYYY-MM-DD` y se parsean a mano para que no
   se corran un día por la zona horaria.
+- **Usuarios fijos**: son siempre los mismos dos, con ids estables (`posolo` y
+  `posola`), así los gastos viejos y la sincronización nunca apuntan a otra
+  persona. Se les puede cambiar el color, no el nombre.
+- **Sueldos por mes**: se guardan como `mes:persona`, con id determinista para
+  que no se dupliquen si los dos cargan el mismo sueldo a la vez. Si un mes no
+  tiene nada cargado, se arrastra el último conocido.
 - **Meses cortos**: un fijo que vence el 31 cae el 28 en febrero.
 - **Accesibilidad**: objetivos táctiles de 44px, foco visible, `aria-label` en los
   gráficos y respeto por `prefers-reduced-motion`.

@@ -9,10 +9,16 @@ import { uid, nowIso, currentMonth } from './util.js';
 const KEY = 'nuestracasa.v1';
 const CONFIG_KEY = 'nuestracasa.config.v1'; // no se sincroniza (claves y prefs del dispositivo)
 
-export const COLLECTIONS = ['expenses', 'fixed', 'shopping', 'goals', 'settlements', 'categories', 'people'];
+export const COLLECTIONS = ['expenses', 'fixed', 'shopping', 'goals', 'settlements', 'categories', 'people', 'incomes'];
+
+/* Somos siempre los mismos dos: ids fijos para que la sincronización y los
+   gastos viejos apunten siempre a la misma persona. */
+export const PEOPLE = [
+  { id: 'posolo', name: 'Posolo', color: '#2a78d6' },
+  { id: 'posola', name: 'Posola', color: '#eb6834' },
+];
 
 export const DEFAULT_CATEGORIES = [
-  { key: 'alquiler',     name: 'Alquiler',      emoji: '🏠' },
   { key: 'expensas',     name: 'Expensas',      emoji: '🏢' },
   { key: 'luz',          name: 'Luz',           emoji: '💡' },
   { key: 'gas',          name: 'Gas',           emoji: '🔥' },
@@ -35,10 +41,7 @@ const PERSON_COLORS = ['#2a78d6', '#eb6834', '#1baf7a', '#4a3aa7', '#e87ba4', '#
 
 function freshState() {
   const ts = nowIso();
-  const people = [
-    { id: uid(), name: 'Yo', color: PERSON_COLORS[0], updatedAt: ts, deleted: false },
-    { id: uid(), name: 'Mi pareja', color: PERSON_COLORS[1], updatedAt: ts, deleted: false },
-  ];
+  const people = PEOPLE.map((p) => ({ ...p, updatedAt: ts, deleted: false }));
   const categories = DEFAULT_CATEGORIES.map((c) => ({
     id: c.key,
     name: c.name,
@@ -64,6 +67,7 @@ function freshState() {
     shopping: [],
     goals: [],
     settlements: [],
+    incomes: [],
   };
 }
 
@@ -86,8 +90,20 @@ function migrate(s) {
   s.version = s.version || 1;
   COLLECTIONS.forEach((c) => { if (!Array.isArray(s[c])) s[c] = []; });
   s.settings = { ...freshState().settings, ...(s.settings || {}) };
-  if (!s.people.length) s.people = freshState().people;
   if (!s.categories.length) s.categories = freshState().categories;
+
+  /* Somos dos y fijos. Los datos viejos conservan sus ids (para no romper
+     los gastos ya cargados) pero adoptan el nombre y el color que toca. */
+  const alive = s.people.filter((p) => !p.deleted);
+  if (alive.length < 2) {
+    s.people = freshState().people;
+  } else {
+    alive.slice(0, 2).forEach((p, i) => {
+      p.name = PEOPLE[i].name;
+      p.color = p.color || PEOPLE[i].color;
+    });
+    alive.slice(2).forEach((p) => { p.deleted = true; p.updatedAt = nowIso(); });
+  }
   return s;
 }
 
@@ -252,6 +268,40 @@ export function nextPersonColor() {
   return PERSON_COLORS.find((c) => !used.has(c)) || PERSON_COLORS[0];
 }
 
+/* ------------------------------------------------------------------ sueldos */
+
+/**
+ * Guarda el líquido de una persona para un mes. El id es determinista para
+ * que, si los dos cargan el mismo sueldo a la vez, no queden duplicados.
+ */
+export function setIncome(personId, month, amountCents) {
+  const id = `${month}:${personId}`;
+  const existing = get('incomes', id);
+  if (existing) {
+    Object.assign(existing, { amountCents, deleted: false, updatedAt: nowIso() });
+    commit({ collection: 'incomes', id, action: 'update' });
+    return existing;
+  }
+  const record = { id, month, personId, amountCents, updatedAt: nowIso(), deleted: false };
+  state.incomes.push(record);
+  commit({ collection: 'incomes', id, action: 'add' });
+  return record;
+}
+
+/**
+ * Líquido de una persona en un mes. Si ese mes no tiene nada cargado, se
+ * arrastra el último sueldo conocido: normalmente cobran lo mismo y no hay
+ * que volver a cargarlo todos los meses.
+ */
+export function incomeFor(personId, month) {
+  const rows = list('incomes').filter((i) => i.personId === personId && i.month <= month);
+  if (!rows.length) return { amountCents: 0, month: null, inherited: false };
+  const exact = rows.find((i) => i.month === month);
+  if (exact) return { amountCents: exact.amountCents, month, inherited: false };
+  const last = rows.sort((a, b) => b.month.localeCompare(a.month))[0];
+  return { amountCents: last.amountCents, month: last.month, inherited: true };
+}
+
 /** Quién soy yo en este dispositivo (para los atajos "pagué yo"). */
 export function me() {
   const found = config.meId && get('people', config.meId);
@@ -326,8 +376,9 @@ export function seedDemo() {
   const [a, b] = people();
   const m = currentMonth();
   const day = (d) => `${m}-${String(d).padStart(2, '0')}`;
+  setIncome(a.id, m, 145000000);
+  setIncome(b.id, m, 132000000);
   const rows = [
-    ['Alquiler', 450000, 'alquiler', a.id, 1, 'equal'],
     ['Expensas', 78000, 'expensas', b.id, 3, 'equal'],
     ['Edenor', 32400, 'luz', a.id, 8, 'equal'],
     ['Internet fibra', 29900, 'internet', b.id, 5, 'equal'],
@@ -351,7 +402,6 @@ export function seedDemo() {
     });
   });
   [
-    ['Alquiler', 450000, 'alquiler', 1, a.id],
     ['Expensas', 78000, 'expensas', 3, b.id],
     ['Internet fibra', 29900, 'internet', 5, b.id],
     ['Netflix', 9900, 'suscripciones', 20, a.id],

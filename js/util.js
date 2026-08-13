@@ -243,11 +243,28 @@ export function clear(node) {
   return node;
 }
 
-export function initials(name) {
-  const parts = String(name || '?').trim().split(/\s+/).filter(Boolean);
-  if (!parts.length) return '?';
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[1][0]).toUpperCase();
+/**
+ * Iniciales para el avatar. `otros` sirve para desempatar: "Posolo" y
+ * "Posola" darían las dos "PO", así que en ese caso usamos la primera y la
+ * última letra ("Po" y "Pa").
+ */
+export function initials(name, otros = []) {
+  const limpio = (n) => String(n || '').trim();
+  const partes = limpio(name).split(/\s+/).filter(Boolean);
+  if (!partes.length) return '?';
+
+  const dosLetras = (n) => {
+    const p = limpio(n).split(/\s+/).filter(Boolean);
+    if (!p.length) return '?';
+    return (p.length === 1 ? p[0].slice(0, 2) : p[0][0] + p[1][0]).toUpperCase();
+  };
+
+  const mio = dosLetras(name);
+  const choca = otros.some((o) => limpio(o) !== limpio(name) && dosLetras(o) === mio);
+  if (!choca) return mio;
+
+  const palabra = partes[partes.length - 1];
+  return (partes[0][0] + palabra[palabra.length - 1]).toUpperCase();
 }
 
 export function debounce(fn, ms = 300) {

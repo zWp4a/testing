@@ -1323,11 +1323,28 @@ function clear(node) {
   return node;
 }
 
-function initials(name) {
-  const parts = String(name || '?').trim().split(/\s+/).filter(Boolean);
-  if (!parts.length) return '?';
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[1][0]).toUpperCase();
+/**
+ * Iniciales para el avatar. `otros` sirve para desempatar: "Posolo" y
+ * "Posola" darían las dos "PO", así que en ese caso usamos la primera y la
+ * última letra ("Po" y "Pa").
+ */
+function initials(name, otros = []) {
+  const limpio = (n) => String(n || '').trim();
+  const partes = limpio(name).split(/\s+/).filter(Boolean);
+  if (!partes.length) return '?';
+
+  const dosLetras = (n) => {
+    const p = limpio(n).split(/\s+/).filter(Boolean);
+    if (!p.length) return '?';
+    return (p.length === 1 ? p[0].slice(0, 2) : p[0][0] + p[1][0]).toUpperCase();
+  };
+
+  const mio = dosLetras(name);
+  const choca = otros.some((o) => limpio(o) !== limpio(name) && dosLetras(o) === mio);
+  if (!choca) return mio;
+
+  const palabra = partes[partes.length - 1];
+  return (partes[0][0] + palabra[palabra.length - 1]).toUpperCase();
 }
 
 function debounce(fn, ms = 300) {
@@ -1374,10 +1391,16 @@ const { uid, nowIso, currentMonth } = __req("js/util.js");
 const KEY = 'nuestracasa.v1';
 const CONFIG_KEY = 'nuestracasa.config.v1'; // no se sincroniza (claves y prefs del dispositivo)
 
-const COLLECTIONS = ['expenses', 'fixed', 'shopping', 'goals', 'settlements', 'categories', 'people'];
+const COLLECTIONS = ['expenses', 'fixed', 'shopping', 'goals', 'settlements', 'categories', 'people', 'incomes'];
+
+/* Somos siempre los mismos dos: ids fijos para que la sincronización y los
+   gastos viejos apunten siempre a la misma persona. */
+const PEOPLE = [
+  { id: 'posolo', name: 'Posolo', color: '#2a78d6' },
+  { id: 'posola', name: 'Posola', color: '#eb6834' },
+];
 
 const DEFAULT_CATEGORIES = [
-  { key: 'alquiler',     name: 'Alquiler',      emoji: '🏠' },
   { key: 'expensas',     name: 'Expensas',      emoji: '🏢' },
   { key: 'luz',          name: 'Luz',           emoji: '💡' },
   { key: 'gas',          name: 'Gas',           emoji: '🔥' },
@@ -1400,10 +1423,7 @@ const PERSON_COLORS = ['#2a78d6', '#eb6834', '#1baf7a', '#4a3aa7', '#e87ba4', '#
 
 function freshState() {
   const ts = nowIso();
-  const people = [
-    { id: uid(), name: 'Yo', color: PERSON_COLORS[0], updatedAt: ts, deleted: false },
-    { id: uid(), name: 'Mi pareja', color: PERSON_COLORS[1], updatedAt: ts, deleted: false },
-  ];
+  const people = PEOPLE.map((p) => ({ ...p, updatedAt: ts, deleted: false }));
   const categories = DEFAULT_CATEGORIES.map((c) => ({
     id: c.key,
     name: c.name,
@@ -1429,6 +1449,7 @@ function freshState() {
     shopping: [],
     goals: [],
     settlements: [],
+    incomes: [],
   };
 }
 
@@ -1451,8 +1472,20 @@ function migrate(s) {
   s.version = s.version || 1;
   COLLECTIONS.forEach((c) => { if (!Array.isArray(s[c])) s[c] = []; });
   s.settings = { ...freshState().settings, ...(s.settings || {}) };
-  if (!s.people.length) s.people = freshState().people;
   if (!s.categories.length) s.categories = freshState().categories;
+
+  /* Somos dos y fijos. Los datos viejos conservan sus ids (para no romper
+     los gastos ya cargados) pero adoptan el nombre y el color que toca. */
+  const alive = s.people.filter((p) => !p.deleted);
+  if (alive.length < 2) {
+    s.people = freshState().people;
+  } else {
+    alive.slice(0, 2).forEach((p, i) => {
+      p.name = PEOPLE[i].name;
+      p.color = p.color || PEOPLE[i].color;
+    });
+    alive.slice(2).forEach((p) => { p.deleted = true; p.updatedAt = nowIso(); });
+  }
   return s;
 }
 
@@ -1617,6 +1650,40 @@ function nextPersonColor() {
   return PERSON_COLORS.find((c) => !used.has(c)) || PERSON_COLORS[0];
 }
 
+/* ------------------------------------------------------------------ sueldos */
+
+/**
+ * Guarda el líquido de una persona para un mes. El id es determinista para
+ * que, si los dos cargan el mismo sueldo a la vez, no queden duplicados.
+ */
+function setIncome(personId, month, amountCents) {
+  const id = `${month}:${personId}`;
+  const existing = get('incomes', id);
+  if (existing) {
+    Object.assign(existing, { amountCents, deleted: false, updatedAt: nowIso() });
+    commit({ collection: 'incomes', id, action: 'update' });
+    return existing;
+  }
+  const record = { id, month, personId, amountCents, updatedAt: nowIso(), deleted: false };
+  state.incomes.push(record);
+  commit({ collection: 'incomes', id, action: 'add' });
+  return record;
+}
+
+/**
+ * Líquido de una persona en un mes. Si ese mes no tiene nada cargado, se
+ * arrastra el último sueldo conocido: normalmente cobran lo mismo y no hay
+ * que volver a cargarlo todos los meses.
+ */
+function incomeFor(personId, month) {
+  const rows = list('incomes').filter((i) => i.personId === personId && i.month <= month);
+  if (!rows.length) return { amountCents: 0, month: null, inherited: false };
+  const exact = rows.find((i) => i.month === month);
+  if (exact) return { amountCents: exact.amountCents, month, inherited: false };
+  const last = rows.sort((a, b) => b.month.localeCompare(a.month))[0];
+  return { amountCents: last.amountCents, month: last.month, inherited: true };
+}
+
 /** Quién soy yo en este dispositivo (para los atajos "pagué yo"). */
 function me() {
   const found = config.meId && get('people', config.meId);
@@ -1691,8 +1758,9 @@ function seedDemo() {
   const [a, b] = people();
   const m = currentMonth();
   const day = (d) => `${m}-${String(d).padStart(2, '0')}`;
+  setIncome(a.id, m, 145000000);
+  setIncome(b.id, m, 132000000);
   const rows = [
-    ['Alquiler', 450000, 'alquiler', a.id, 1, 'equal'],
     ['Expensas', 78000, 'expensas', b.id, 3, 'equal'],
     ['Edenor', 32400, 'luz', a.id, 8, 'equal'],
     ['Internet fibra', 29900, 'internet', b.id, 5, 'equal'],
@@ -1716,7 +1784,6 @@ function seedDemo() {
     });
   });
   [
-    ['Alquiler', 450000, 'alquiler', 1, a.id],
     ['Expensas', 78000, 'expensas', 3, b.id],
     ['Internet fibra', 29900, 'internet', 5, b.id],
     ['Netflix', 9900, 'suscripciones', 20, a.id],
@@ -1732,7 +1799,7 @@ function seedDemo() {
   add('goals', { name: 'Vacaciones', targetCents: 150000000, deadline: '', contributions: [] });
 }
 
-Object.assign(__exports, { saveConfig, subscribe, persist, flush, commit, list, get, add, update, remove, restore, setSettings, people, person, categories, category, nextPersonColor, me, exportData, importData, resetAll, seedDemo, COLLECTIONS, DEFAULT_CATEGORIES, state, config });
+Object.assign(__exports, { saveConfig, subscribe, persist, flush, commit, list, get, add, update, remove, restore, setSettings, people, person, categories, category, nextPersonColor, setIncome, incomeFor, me, exportData, importData, resetAll, seedDemo, COLLECTIONS, PEOPLE, DEFAULT_CATEGORIES, state, config });
 };
 
 __defs["js/router.js"] = (__exports, __req) => {
@@ -1993,12 +2060,13 @@ function confirmSheet(title, message, { confirmText = 'Confirmar', danger = fals
 /* -------------------------------------------------------------- personas */
 
 function avatar(personObj, { large = false } = {}) {
+  const otros = (state.people || []).filter((p) => !p.deleted).map((p) => p.name);
   return el('span', {
     class: `who${large ? ' who--lg' : ''}`,
     style: `background:${personObj.color || '#898781'}`,
     title: personObj.name,
     'aria-hidden': 'true',
-  }, initials(personObj.name));
+  }, initials(personObj.name, otros));
 }
 
 /* ------------------------------------------------------------ formularios */
@@ -2459,7 +2527,7 @@ Object.assign(__exports, { onSyncChange, isConfigured, syncState, sync, testConn
 __defs["js/calc.js"] = (__exports, __req) => {
 /* Cálculos: reparto de gastos, balances, resúmenes mensuales y vencimientos. */
 
-const { list, people, get } = __req("js/store.js");
+const { list, people, get, incomeFor } = __req("js/store.js");
 const { allocate, monthKey, currentMonth, addMonths, clampDay, today, daysBetween } = __req("js/util.js");
 
 /**
@@ -2655,6 +2723,75 @@ function projectedMonthTotal(mKey) {
   return summary.total + pendingCents;
 }
 
+/** Cuánto le tocaría a cada uno de los fijos que todavía no se pagaron. */
+function pendingFixedShares(mKey) {
+  const roster = people();
+  const out = {};
+  roster.forEach((p) => { out[p.id] = 0; });
+  fixedStatus(mKey).rows.forEach((r) => {
+    if (r.expense) return;
+    const shares = sharesOf({
+      amountCents: r.fixed.amountCents || 0,
+      paidBy: r.fixed.paidBy,
+      splitMode: r.fixed.splitMode,
+      splitTo: r.fixed.splitTo,
+      splitPct: r.fixed.splitPct,
+    }, roster);
+    Object.entries(shares).forEach(([id, cents]) => {
+      if (out[id] !== undefined) out[id] += cents;
+    });
+  });
+  return out;
+}
+
+/* ---------------------------------------------------------------- sueldos */
+
+/**
+ * El número que importa: cuánto queda del sueldo después de los gastos.
+ *
+ * Se descuenta *la parte que le toca* a cada uno, no lo que puso de su
+ * bolsillo, porque las diferencias entre los dos se emparejan al saldar. Así
+ * la suma de lo que le queda a cada uno da exactamente lo que queda en total.
+ */
+function monthBudget(mKey) {
+  const roster = people();
+  const summary = monthSummary(mKey);
+  const pending = pendingFixedShares(mKey);
+
+  const rows = roster.map((p) => {
+    const income = incomeFor(p.id, mKey);
+    const spent = summary.owed[p.id] || 0;
+    const pendingCents = pending[p.id] || 0;
+    return {
+      person: p,
+      incomeCents: income.amountCents,
+      inherited: income.inherited,
+      inheritedFrom: income.month,
+      spentCents: spent,
+      paidCents: summary.paid[p.id] || 0,
+      pendingCents,
+      remainingCents: income.amountCents - spent,
+      afterPendingCents: income.amountCents - spent - pendingCents,
+      usedPct: income.amountCents > 0 ? spent / income.amountCents : 0,
+    };
+  });
+
+  const totalIncome = rows.reduce((s, r) => s + r.incomeCents, 0);
+  const totalPending = rows.reduce((s, r) => s + r.pendingCents, 0);
+
+  return {
+    month: mKey,
+    rows,
+    totalIncome,
+    totalSpent: summary.total,
+    totalPending,
+    remainingCents: totalIncome - summary.total,
+    afterPendingCents: totalIncome - summary.total - totalPending,
+    usedPct: totalIncome > 0 ? summary.total / totalIncome : 0,
+    hasIncome: totalIncome > 0,
+  };
+}
+
 /* ---------------------------------------------------------------- compras */
 
 function shoppingSummary() {
@@ -2729,7 +2866,7 @@ function toCsv(mKey = null) {
   return `﻿${lines.join('\n')}`;
 }
 
-Object.assign(__exports, { sharesOf, expensesOfMonth, settlementsOfMonth, balances, settleUp, monthSummary, monthlyTrend, averageMonthly, fixedExpenseFor, fixedStatus, projectedMonthTotal, shoppingSummary, budgetStatus, goalProgress, toCsv });
+Object.assign(__exports, { sharesOf, expensesOfMonth, settlementsOfMonth, balances, settleUp, monthSummary, monthlyTrend, averageMonthly, fixedExpenseFor, fixedStatus, projectedMonthTotal, pendingFixedShares, monthBudget, shoppingSummary, budgetStatus, goalProgress, toCsv });
 };
 
 __defs["js/views/expense-form.js"] = (__exports, __req) => {
@@ -2829,7 +2966,7 @@ function openExpenseForm(existing = null, defaults = {}) {
 
   const descInput = input({
     type: 'text',
-    placeholder: 'Ej: Supermercado, alquiler…',
+    placeholder: 'Ej: Supermercado, luz, salida…',
     value: draft.description,
     autocomplete: 'off',
     enterkeyhint: 'done',
@@ -3038,13 +3175,13 @@ Object.assign(__exports, { openExpenseForm });
 };
 
 __defs["js/views/dashboard.js"] = (__exports, __req) => {
-/* Resumen: balance entre las dos personas, totales del mes y gráficos. */
+/* Resumen: cuánto queda del sueldo, balance entre los dos y gráficos. */
 
-const { el, today, currentMonth, monthLabel, addMonths } = __req("js/util.js");
+const { el, today, currentMonth, monthLabel, addMonths, toCents, fromCents } = __req("js/util.js");
 const store = __req("js/store.js");
 const {
   balances, settleUp, monthSummary, monthlyTrend, averageMonthly,
-  fixedStatus, budgetStatus, goalProgress,
+  fixedStatus, budgetStatus, goalProgress, monthBudget,
 } = __req("js/calc.js");
 const {
   fmt, monthNav, barList, trendChart, splitBar, listCard, listItem, emptyState,
@@ -3052,6 +3189,56 @@ const {
 } = __req("js/ui.js");
 const { openExpenseForm } = __req("js/views/expense-form.js");
 const { navigate } = __req("js/router.js");
+
+/* ---------------------------------------------------------- sueldos del mes */
+
+function openIncomeForm(mKey) {
+  const roster = store.people();
+  const inputs = new Map();
+
+  const campos = roster.map((p) => {
+    const actual = store.incomeFor(p.id, mKey);
+    const box = input({
+      class: 'input input--amount',
+      type: 'text',
+      inputmode: 'decimal',
+      placeholder: '0,00',
+      value: actual.amountCents ? String(fromCents(actual.amountCents)).replace('.', ',') : '',
+      'aria-label': `Líquido de ${p.name}`,
+    });
+    inputs.set(p.id, box);
+    return el('div', { style: 'margin-bottom:14px' }, [
+      el('div', { class: 'row', style: 'margin-bottom:6px' }, [
+        avatar(p),
+        el('span', { class: 'field__label grow', style: 'margin:0', text: p.name }),
+        actual.inherited && actual.amountCents
+          ? el('span', { class: 'tag', text: `viene de ${monthLabel(actual.inheritedFrom, store.state.settings.locale, 'short')}` })
+          : null,
+      ]),
+      box,
+    ]);
+  });
+
+  function save() {
+    let cargados = 0;
+    roster.forEach((p) => {
+      const cents = toCents(inputs.get(p.id).value);
+      store.setIncome(p.id, mKey, cents);
+      if (cents > 0) cargados += 1;
+    });
+    closeSheet();
+    toast(cargados ? 'Sueldos actualizados.' : 'Sueldos en cero.');
+  }
+
+  openSheet(`Sueldos de ${monthLabel(mKey, store.state.settings.locale)}`, el('div', {}, [
+    el('p', { class: 'muted small', style: 'margin-bottom:16px' },
+      'Poné el líquido que cobran, ya con el alquiler descontado. De acá se van restando los gastos del mes.'),
+    ...campos,
+    el('p', { class: 'field__hint', style: 'margin-top:-4px' },
+      'Se copia solo a los meses siguientes. Si un mes cobrás distinto, lo cambiás acá y listo.'),
+    footerButtons('Guardar', save),
+  ]));
+}
 
 /* ------------------------------------------------------- saldar la cuenta */
 
@@ -3123,39 +3310,122 @@ function renderDashboard(root, params) {
 
   root.append(monthNav(mKey, (m) => navigate('resumen', { month: m })));
 
-  /* --- balance --- */
+  const budget = monthBudget(mKey);
+
+  /* --- lo que queda: el número que miran todos los días --- */
   const hero = el('section', { class: 'hero' });
-  if (!moves.length) {
+  if (!budget.hasIncome) {
     hero.append(
-      el('p', { class: 'hero__label', text: 'Balance' }),
-      el('p', { class: 'hero__value', text: '¡Están a mano!' }),
-      el('p', { class: 'hero__caption', text: 'Nadie le debe nada a nadie.' }),
-    );
-  } else {
-    const m = moves[0];
-    const from = store.person(m.fromId);
-    const to = store.person(m.toId);
-    hero.append(
-      el('p', { class: 'hero__label', text: 'Balance' }),
-      el('p', { class: 'hero__value num', text: fmt(m.amountCents) }),
-      el('p', { class: 'hero__caption' }, [
-        el('strong', { text: from.name }),
-        ' le debe a ',
-        el('strong', { text: to.name }),
+      el('p', { class: 'hero__label', text: 'Nos queda' }),
+      el('p', { class: 'hero__value', style: 'font-size:clamp(24px,7vw,30px)', text: 'Falta el sueldo' }),
+      el('p', { class: 'hero__caption', text: 'Cargá el líquido de cada uno y de ahí se descuentan los gastos.' }),
+      el('div', { class: 'hero__actions' }, [
+        el('button', { class: 'btn btn--primary', type: 'button', text: 'Cargar sueldos', onclick: () => openIncomeForm(mKey) }),
       ]),
     );
+  } else {
+    const negativo = budget.remainingCents < 0;
+    hero.append(
+      el('p', { class: 'hero__label', text: 'Nos queda' }),
+      el('p', {
+        class: 'hero__value num',
+        style: negativo ? 'color:var(--critical-text)' : '',
+        text: fmt(budget.remainingCents),
+      }),
+      el('p', { class: 'hero__caption' }, [
+        `de ${fmt(budget.totalIncome)} que entraron`,
+        budget.totalPending > 0
+          ? el('span', { class: 'small muted', style: 'display:block;margin-top:4px' },
+            `Si pagan los fijos que faltan, quedan ${fmt(budget.afterPendingCents)}`)
+          : null,
+      ]),
+      barList([{
+        label: `${Math.round(budget.usedPct * 100)}% del sueldo gastado`,
+        value: budget.totalSpent,
+        level: budget.usedPct >= 1 ? 'critical' : budget.usedPct >= 0.8 ? 'warning' : undefined,
+      }], { max: Math.max(budget.totalIncome, budget.totalSpent, 1) }),
+      el('div', { class: 'hero__actions' }, [
+        el('button', { class: 'btn btn--primary', type: 'button', text: '＋ Cargar gasto', onclick: () => openExpenseForm(null, { date: defaultDateFor(mKey) }) }),
+        el('button', { class: 'btn', type: 'button', text: 'Sueldos', onclick: () => openIncomeForm(mKey) }),
+      ]),
+    );
+  }
+  root.append(hero);
+
+  /* --- cuánto le queda a cada uno --- */
+  if (budget.hasIncome) {
+    root.append(el('section', { class: 'card' }, [
+      el('div', { class: 'card__head' }, [
+        el('h2', { class: 'card__title grow', text: 'Cuánto le queda a cada uno' }),
+        el('button', { class: 'linkbtn', type: 'button', text: 'Editar sueldos', onclick: () => openIncomeForm(mKey) }),
+      ]),
+      el('div', { class: 'stack', style: 'gap:16px' }, budget.rows.map((r) => {
+        const negativo = r.remainingCents < 0;
+        return el('div', {}, [
+          el('div', { class: 'row', style: 'margin-bottom:7px' }, [
+            avatar(r.person),
+            el('span', { class: 'grow', style: 'font-weight:600', text: r.person.name }),
+            el('span', {
+              class: 'num',
+              style: `font-size:19px;font-weight:680;${negativo ? 'color:var(--critical-text)' : ''}`,
+              text: fmt(r.remainingCents),
+            }),
+          ]),
+          barList([{
+            label: `Gastó ${fmt(r.spentCents)}`,
+            value: r.spentCents,
+            level: r.usedPct >= 1 ? 'critical' : r.usedPct >= 0.8 ? 'warning' : undefined,
+          }], {
+            max: Math.max(r.incomeCents, r.spentCents, 1),
+            formatValue: () => `de ${fmt(r.incomeCents)}`,
+          }),
+          r.pendingCents > 0
+            ? el('p', { class: 'field__hint', style: 'margin-top:6px' },
+              `Le faltan ${fmt(r.pendingCents)} de fijos: quedaría en ${fmt(r.afterPendingCents)}`)
+            : null,
+        ]);
+      })),
+      el('p', { class: 'field__hint', style: 'margin-top:14px' },
+        'Se descuenta la parte que le toca a cada uno, no lo que puso de su bolsillo: las diferencias se emparejan abajo, en el balance.'),
+    ]));
+  }
+
+  /* --- quién le debe a quién --- */
+  const balanceCard = el('section', { class: 'card' }, [
+    el('div', { class: 'card__head' }, [
+      el('h2', { class: 'card__title grow', text: 'Entre ustedes' }),
+    ]),
+  ]);
+  if (!moves.length) {
+    balanceCard.append(el('div', { class: 'row', style: 'gap:9px' }, [
+      el('span', { class: 'tag tag--good', text: 'Al día' }),
+      el('span', { class: 'small muted grow', text: 'Nadie le debe nada a nadie.' }),
+    ]));
+  } else {
+    const m = moves[0];
+    balanceCard.append(
+      el('div', { class: 'row row--between', style: 'align-items:baseline;margin-bottom:4px' }, [
+        el('span', {}, [
+          el('strong', { text: store.person(m.fromId).name }),
+          ' le debe a ',
+          el('strong', { text: store.person(m.toId).name }),
+        ]),
+        el('span', { class: 'num', style: 'font-size:19px;font-weight:680', text: fmt(m.amountCents) }),
+      ]),
+      el('p', { class: 'field__hint', text: 'Porque uno puso más plata de la que le tocaba. Al saldar, se empareja.' }),
+      el('button', {
+        class: 'btn btn--block', type: 'button', style: 'margin-top:12px',
+        text: 'Registrar el pago', onclick: () => openSettleForm(),
+      }),
+    );
     if (moves.length > 1) {
-      hero.append(el('div', { class: 'stack small muted', style: 'margin-top:10px' },
+      balanceCard.append(el('div', { class: 'stack small muted', style: 'margin-top:10px' },
         moves.slice(1).map((x) => el('span', {
           text: `${store.person(x.fromId).name} → ${store.person(x.toId).name}: ${fmt(x.amountCents)}`,
         }))));
     }
   }
-  hero.append(el('div', { class: 'hero__actions' }, [
-    el('button', { class: 'btn btn--primary', type: 'button', text: '＋ Cargar gasto', onclick: () => openExpenseForm(null, { date: defaultDateFor(mKey) }) }),
-    moves.length ? el('button', { class: 'btn', type: 'button', text: 'Saldar', onclick: () => openSettleForm() }) : null,
-  ]));
-  root.append(hero);
+  root.append(balanceCard);
 
   /* --- tarjetas de números --- */
   const prevTotal = monthSummary(addMonths(mKey, -1)).total;
@@ -3229,7 +3499,10 @@ function renderDashboard(root, params) {
     root.append(el('section', { class: 'card' }, [
       el('div', { class: 'card__head' }, [
         el('h2', { class: 'card__title grow', text: 'En qué se fue' }),
-        el('span', { class: 'card__meta', text: `${summary.categories.length} categorías` }),
+        el('span', {
+          class: 'card__meta',
+          text: `${summary.categories.length} categoría${summary.categories.length === 1 ? '' : 's'}`,
+        }),
       ]),
       barList(summary.categories.slice(0, 8).map((c) => {
         const cat = store.category(c.id);
@@ -3333,7 +3606,7 @@ function defaultDateFor(mKey) {
   return t.slice(0, 7) === mKey ? t : `${mKey}-01`;
 }
 
-Object.assign(__exports, { openSettleForm, renderDashboard, expenseRow });
+Object.assign(__exports, { openIncomeForm, openSettleForm, renderDashboard, expenseRow });
 };
 
 __defs["js/views/expenses.js"] = (__exports, __req) => {
@@ -3493,7 +3766,7 @@ function openFixedForm(existing = null) {
   const draft = existing ? { ...existing } : {
     name: '',
     amountCents: 0,
-    categoryId: 'alquiler',
+    categoryId: 'expensas',
     dayOfMonth: 1,
     paidBy: store.me().id,
     splitMode: 'equal',
@@ -3503,7 +3776,7 @@ function openFixedForm(existing = null) {
     variable: false,
   };
 
-  const nameInput = input({ type: 'text', placeholder: 'Alquiler, Edenor, Netflix…', value: draft.name });
+  const nameInput = input({ type: 'text', placeholder: 'Edenor, expensas, Netflix…', value: draft.name });
   const amountInput = input({
     class: 'input input--amount', type: 'text', inputmode: 'decimal',
     value: draft.amountCents ? String(fromCents(draft.amountCents)).replace('.', ',') : '',
@@ -3657,7 +3930,7 @@ function renderFixed(root, params) {
   if (!rows.length) {
     root.append(el('section', { class: 'card' }, [
       emptyState('📅', 'Sin gastos fijos cargados',
-        'Cargá el alquiler, las expensas y los servicios una vez y la app te los recuerda todos los meses.',
+        'Cargá las expensas y los servicios una vez y la app te los recuerda todos los meses.',
         'Agregar el primero', () => openFixedForm()),
     ]));
     return;
@@ -4174,7 +4447,7 @@ Object.assign(__exports, { renderGoals });
 __defs["js/views/settings.js"] = (__exports, __req) => {
 /* Ajustes: personas, categorías, presupuestos, sincronización y backups. */
 
-const { el, toCents, fromCents, randomCode, download, today, SIN_DESCARGA } = __req("js/util.js");
+const { el, toCents, fromCents, randomCode, download, today, currentMonth, monthLabel, SIN_DESCARGA } = __req("js/util.js");
 const store = __req("js/store.js");
 const { toCsv } = __req("js/calc.js");
 const {
@@ -4184,6 +4457,7 @@ const {
 const sync = __req("js/sync.js");
 const { applyTheme } = __req("js/theme.js");
 const { navigate } = __req("js/router.js");
+const { openIncomeForm } = __req("js/views/dashboard.js");
 
 const CURRENCIES = [
   { value: 'ARS', label: 'Peso argentino ($)' },
@@ -4199,11 +4473,8 @@ const CURRENCIES = [
 
 /* --------------------------------------------------------------- personas */
 
-function openPersonForm(existing = null) {
-  const isEdit = Boolean(existing);
-  const nameInput = input({ type: 'text', placeholder: 'Nombre', value: existing?.name || '' });
-  let color = existing?.color || store.nextPersonColor();
-
+function openPersonColor(personObj) {
+  let color = personObj.color;
   const colors = ['#2a78d6', '#eb6834', '#1baf7a', '#4a3aa7', '#e87ba4', '#eda100', '#008300', '#e34948'];
   const swatches = el('div', { class: 'chips' }, colors.map((c) => {
     const btn = el('button', {
@@ -4217,28 +4488,13 @@ function openPersonForm(existing = null) {
     return btn;
   }));
 
-  function save() {
-    const name = nameInput.value.trim();
-    if (!name) { toast('Falta el nombre.'); return; }
-    if (isEdit) store.update('people', existing.id, { name, color });
-    else store.add('people', { name, color });
-    closeSheet();
-  }
-
-  async function del() {
-    if (store.people().length <= 2) { toast('Tienen que quedar al menos dos personas.'); return; }
-    const ok = await confirmSheet('¿Sacar a esta persona?',
-      'Los gastos que cargó quedan, pero ya no se le reparte nada nuevo.', { confirmText: 'Sacar', danger: true });
-    if (!ok) return;
-    store.remove('people', existing.id);
-    toast('Persona eliminada.');
-  }
-
-  openSheet(isEdit ? 'Editar persona' : 'Agregar persona', el('div', {}, [
-    field('Nombre', nameInput),
-    field('Color', swatches),
-    footerButtons('Guardar', save, {
-      extra: isEdit ? el('button', { class: 'btn btn--danger', type: 'button', text: 'Sacar', onclick: del }) : null,
+  openSheet(`Color de ${personObj.name}`, el('div', {}, [
+    el('p', { class: 'muted small', style: 'margin-bottom:14px' },
+      'Es el color con el que aparece en los gráficos y en la barra de quién puso la plata.'),
+    swatches,
+    footerButtons('Guardar', () => {
+      store.update('people', personObj.id, { color });
+      closeSheet();
     }),
   ]));
 }
@@ -4373,18 +4629,16 @@ function openShareCode() {
 function renderSettings(root) {
   const s = store.state.settings;
 
-  /* --- personas --- */
-  root.append(listCard([
-    ...store.people().map((p) => listItem({
+  /* --- personas (fijas: siempre los mismos dos) --- */
+  root.append(listCard(
+    store.people().map((p) => listItem({
       icon: avatar(p),
       title: p.name,
-      subtitle: store.me().id === p.id ? 'Sos vos en este dispositivo' : 'Toca para editar',
-      onClick: () => openPersonForm(p),
+      subtitle: store.me().id === p.id ? 'Sos vos en este dispositivo' : 'Tocá para cambiarle el color',
+      onClick: () => openPersonColor(p),
     })),
-    el('div', { style: 'padding:12px 15px' }, [
-      el('button', { class: 'btn btn--sm btn--block', type: 'button', text: '＋ Agregar persona', onclick: () => openPersonForm() }),
-    ]),
-  ], { title: 'Quiénes viven acá' }));
+    { title: 'Quiénes viven acá' },
+  ));
 
   /* --- quién sos --- */
   root.append(el('section', { class: 'card' }, [
@@ -4400,6 +4654,25 @@ function renderSettings(root) {
     ),
     el('p', { class: 'field__hint', style: 'margin-top:8px', text: 'Sirve para que cada uno cargue gastos con un toque menos.' }),
   ]));
+
+  /* --- sueldos del mes en curso --- */
+  const mesActual = currentMonth();
+  root.append(listCard([
+    ...store.people().map((p) => {
+      const ing = store.incomeFor(p.id, mesActual);
+      return listItem({
+        icon: avatar(p),
+        title: p.name,
+        subtitle: ing.amountCents
+          ? (ing.inherited ? `Arrastrado de ${monthLabel(ing.inheritedFrom, s.locale)}` : 'Cargado para este mes')
+          : 'Sin cargar',
+        amount: ing.amountCents,
+        onClick: () => openIncomeForm(mesActual),
+      });
+    }),
+    el('p', { class: 'field__hint', style: 'padding:11px 15px 14px' },
+      'El líquido que cobran, ya con el alquiler descontado. Se arrastra solo de un mes al otro.'),
+  ], { title: `Sueldos de ${monthLabel(mesActual, s.locale)}` }));
 
   /* --- moneda y preferencias --- */
   root.append(el('section', { class: 'card' }, [
@@ -4546,11 +4819,13 @@ Object.assign(__exports, { renderSettings });
 };
 
 __defs["js/views/onboarding.js"] = (__exports, __req) => {
-/* Primer arranque: nombres, moneda y (opcional) datos de ejemplo. */
+/* Primer arranque: quién sos, moneda y los sueldos del mes. */
 
-const { el } = __req("js/util.js");
+const { el, toCents, currentMonth, monthLabel } = __req("js/util.js");
 const store = __req("js/store.js");
-const { field, input, select, footerButtons, openSheet, closeSheet, toast } = __req("js/ui.js");
+const {
+  field, input, select, segmented, footerButtons, openSheet, closeSheet, toast, avatar,
+} = __req("js/ui.js");
 const { navigate } = __req("js/router.js");
 
 const CURRENCIES = [
@@ -4567,38 +4842,64 @@ const CURRENCIES = [
 
 function openOnboarding() {
   const roster = store.people();
-  const meInput = input({ type: 'text', placeholder: 'Tu nombre', value: '', autocomplete: 'given-name' });
-  const otherInput = input({ type: 'text', placeholder: 'El de tu pareja', value: '', autocomplete: 'off' });
+  const mes = currentMonth();
+  let meId = roster[0].id;
+
   const currencySel = select(CURRENCIES, store.state.settings.currency);
-  // En la versión de muestra conviene arrancar con datos cargados.
   const demoBox = input({ type: 'checkbox', class: 'switch__box', checked: Boolean(window.__nuestraCasaPreview) });
 
+  const sueldos = new Map();
+  const camposSueldo = roster.map((p) => {
+    const box = input({
+      class: 'input input--amount', type: 'text', inputmode: 'decimal',
+      placeholder: '0,00', 'aria-label': `Líquido de ${p.name}`,
+    });
+    sueldos.set(p.id, box);
+    return el('div', { style: 'margin-bottom:12px' }, [
+      el('div', { class: 'row', style: 'margin-bottom:6px' }, [
+        avatar(p),
+        el('span', { class: 'field__label', style: 'margin:0', text: p.name }),
+      ]),
+      box,
+    ]);
+  });
+
   function finish() {
-    const myName = meInput.value.trim() || 'Yo';
-    const otherName = otherInput.value.trim() || 'Mi pareja';
-    store.update('people', roster[0].id, { name: myName });
-    store.update('people', roster[1].id, { name: otherName });
-    store.setSettings({ currency: currencySel.value, defaultPayer: roster[0].id });
-    store.saveConfig({ meId: roster[0].id, onboarded: true });
+    store.setSettings({ currency: currencySel.value, defaultPayer: meId });
+    store.saveConfig({ meId, onboarded: true });
+    roster.forEach((p) => {
+      const cents = toCents(sueldos.get(p.id).value);
+      if (cents > 0) store.setIncome(p.id, mes, cents);
+    });
     if (demoBox.checked) store.seedDemo();
     closeSheet();
-    toast(`¡Bienvenidos! Cargá el primer gasto con el botón ＋.`, { ms: 5000 });
+    toast('¡Listo! Cargá el primer gasto con el botón ＋.', { ms: 5000 });
     navigate('resumen');
   }
 
   function skip() {
-    store.saveConfig({ onboarded: true });
+    store.saveConfig({ meId, onboarded: true });
     closeSheet();
   }
 
   openSheet('Bienvenidos 🏡', el('div', {}, [
     el('p', { class: 'muted small', style: 'margin-bottom:16px' },
-      'Esto lleva la cuenta de los gastos de la casa entre los dos: quién pagó qué, cuánto le toca a cada uno y qué falta pagar este mes.'),
-    el('div', { class: 'grid-2', style: 'margin-bottom:13px' }, [
-      field('Vos sos', meInput),
-      field('Y ella/él', otherInput),
-    ]),
+      'Acá van los gastos de la casa. Cargan lo que cobran, se descuentan los gastos y siempre tienen a mano cuánto les queda a cada uno y a los dos.'),
+
+    field('¿Quién sos en este teléfono?', segmented(
+      roster.map((p) => ({ value: p.id, label: p.name })),
+      meId,
+      (v) => { meId = v; },
+    ), 'Sirve para que cargues gastos con un toque menos.'),
+
     field('Moneda', currencySel),
+
+    el('div', { class: 'divider' }),
+    el('p', { class: 'field__label', text: `Sueldo líquido de ${monthLabel(mes, store.state.settings.locale)}` }),
+    el('p', { class: 'field__hint', style: 'margin:-2px 0 12px' },
+      'Lo que cobran de bolsillo, ya con el alquiler descontado. Se puede cargar después.'),
+    ...camposSueldo,
+
     el('label', { class: 'field' }, [
       el('span', { class: 'switch' }, [
         el('span', {}, [
@@ -4608,8 +4909,9 @@ function openOnboarding() {
         demoBox,
       ]),
     ]),
+
     el('p', { class: 'field__hint', style: 'margin-bottom:4px' },
-      'Todo se guarda en tu teléfono. Si querés que los dos vean lo mismo, activá la sincronización en Ajustes.'),
+      'Todo se guarda en tu teléfono. Para que los dos vean lo mismo, activá la sincronización en Ajustes.'),
     footerButtons('Empezar', finish, { secondaryLabel: 'Después', onSecondary: skip }),
   ]));
 }

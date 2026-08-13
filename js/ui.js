@@ -108,12 +108,13 @@ export function confirmSheet(title, message, { confirmText = 'Confirmar', danger
 /* -------------------------------------------------------------- personas */
 
 export function avatar(personObj, { large = false } = {}) {
+  const otros = (state.people || []).filter((p) => !p.deleted).map((p) => p.name);
   return el('span', {
     class: `who${large ? ' who--lg' : ''}`,
     style: `background:${personObj.color || '#898781'}`,
     title: personObj.name,
     'aria-hidden': 'true',
-  }, initials(personObj.name));
+  }, initials(personObj.name, otros));
 }
 
 /* ------------------------------------------------------------ formularios */

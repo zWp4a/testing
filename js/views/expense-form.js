@@ -94,7 +94,7 @@ export function openExpenseForm(existing = null, defaults = {}) {
 
   const descInput = input({
     type: 'text',
-    placeholder: 'Ej: Supermercado, alquiler…',
+    placeholder: 'Ej: Supermercado, luz, salida…',
     value: draft.description,
     autocomplete: 'off',
     enterkeyhint: 'done',

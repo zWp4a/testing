@@ -1,6 +1,6 @@
 /* Ajustes: personas, categorías, presupuestos, sincronización y backups. */
 
-import { el, toCents, fromCents, randomCode, download, today, SIN_DESCARGA } from '../util.js';
+import { el, toCents, fromCents, randomCode, download, today, currentMonth, monthLabel, SIN_DESCARGA } from '../util.js';
 import * as store from '../store.js';
 import { toCsv } from '../calc.js';
 import {
@@ -10,6 +10,7 @@ import {
 import * as sync from '../sync.js';
 import { applyTheme } from '../theme.js';
 import { navigate } from '../router.js';
+import { openIncomeForm } from './dashboard.js';
 
 const CURRENCIES = [
   { value: 'ARS', label: 'Peso argentino ($)' },
@@ -25,11 +26,8 @@ const CURRENCIES = [
 
 /* --------------------------------------------------------------- personas */
 
-function openPersonForm(existing = null) {
-  const isEdit = Boolean(existing);
-  const nameInput = input({ type: 'text', placeholder: 'Nombre', value: existing?.name || '' });
-  let color = existing?.color || store.nextPersonColor();
-
+function openPersonColor(personObj) {
+  let color = personObj.color;
   const colors = ['#2a78d6', '#eb6834', '#1baf7a', '#4a3aa7', '#e87ba4', '#eda100', '#008300', '#e34948'];
   const swatches = el('div', { class: 'chips' }, colors.map((c) => {
     const btn = el('button', {
@@ -43,28 +41,13 @@ function openPersonForm(existing = null) {
     return btn;
   }));
 
-  function save() {
-    const name = nameInput.value.trim();
-    if (!name) { toast('Falta el nombre.'); return; }
-    if (isEdit) store.update('people', existing.id, { name, color });
-    else store.add('people', { name, color });
-    closeSheet();
-  }
-
-  async function del() {
-    if (store.people().length <= 2) { toast('Tienen que quedar al menos dos personas.'); return; }
-    const ok = await confirmSheet('¿Sacar a esta persona?',
-      'Los gastos que cargó quedan, pero ya no se le reparte nada nuevo.', { confirmText: 'Sacar', danger: true });
-    if (!ok) return;
-    store.remove('people', existing.id);
-    toast('Persona eliminada.');
-  }
-
-  openSheet(isEdit ? 'Editar persona' : 'Agregar persona', el('div', {}, [
-    field('Nombre', nameInput),
-    field('Color', swatches),
-    footerButtons('Guardar', save, {
-      extra: isEdit ? el('button', { class: 'btn btn--danger', type: 'button', text: 'Sacar', onclick: del }) : null,
+  openSheet(`Color de ${personObj.name}`, el('div', {}, [
+    el('p', { class: 'muted small', style: 'margin-bottom:14px' },
+      'Es el color con el que aparece en los gráficos y en la barra de quién puso la plata.'),
+    swatches,
+    footerButtons('Guardar', () => {
+      store.update('people', personObj.id, { color });
+      closeSheet();
     }),
   ]));
 }
@@ -199,18 +182,16 @@ function openShareCode() {
 export function renderSettings(root) {
   const s = store.state.settings;
 
-  /* --- personas --- */
-  root.append(listCard([
-    ...store.people().map((p) => listItem({
+  /* --- personas (fijas: siempre los mismos dos) --- */
+  root.append(listCard(
+    store.people().map((p) => listItem({
       icon: avatar(p),
       title: p.name,
-      subtitle: store.me().id === p.id ? 'Sos vos en este dispositivo' : 'Toca para editar',
-      onClick: () => openPersonForm(p),
+      subtitle: store.me().id === p.id ? 'Sos vos en este dispositivo' : 'Tocá para cambiarle el color',
+      onClick: () => openPersonColor(p),
     })),
-    el('div', { style: 'padding:12px 15px' }, [
-      el('button', { class: 'btn btn--sm btn--block', type: 'button', text: '＋ Agregar persona', onclick: () => openPersonForm() }),
-    ]),
-  ], { title: 'Quiénes viven acá' }));
+    { title: 'Quiénes viven acá' },
+  ));
 
   /* --- quién sos --- */
   root.append(el('section', { class: 'card' }, [
@@ -226,6 +207,25 @@ export function renderSettings(root) {
     ),
     el('p', { class: 'field__hint', style: 'margin-top:8px', text: 'Sirve para que cada uno cargue gastos con un toque menos.' }),
   ]));
+
+  /* --- sueldos del mes en curso --- */
+  const mesActual = currentMonth();
+  root.append(listCard([
+    ...store.people().map((p) => {
+      const ing = store.incomeFor(p.id, mesActual);
+      return listItem({
+        icon: avatar(p),
+        title: p.name,
+        subtitle: ing.amountCents
+          ? (ing.inherited ? `Arrastrado de ${monthLabel(ing.inheritedFrom, s.locale)}` : 'Cargado para este mes')
+          : 'Sin cargar',
+        amount: ing.amountCents,
+        onClick: () => openIncomeForm(mesActual),
+      });
+    }),
+    el('p', { class: 'field__hint', style: 'padding:11px 15px 14px' },
+      'El líquido que cobran, ya con el alquiler descontado. Se arrastra solo de un mes al otro.'),
+  ], { title: `Sueldos de ${monthLabel(mesActual, s.locale)}` }));
 
   /* --- moneda y preferencias --- */
   root.append(el('section', { class: 'card' }, [

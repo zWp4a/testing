@@ -1,10 +1,10 @@
-/* Resumen: balance entre las dos personas, totales del mes y gráficos. */
+/* Resumen: cuánto queda del sueldo, balance entre los dos y gráficos. */
 
-import { el, today, currentMonth, monthLabel, addMonths } from '../util.js';
+import { el, today, currentMonth, monthLabel, addMonths, toCents, fromCents } from '../util.js';
 import * as store from '../store.js';
 import {
   balances, settleUp, monthSummary, monthlyTrend, averageMonthly,
-  fixedStatus, budgetStatus, goalProgress,
+  fixedStatus, budgetStatus, goalProgress, monthBudget,
 } from '../calc.js';
 import {
   fmt, monthNav, barList, trendChart, splitBar, listCard, listItem, emptyState,
@@ -12,6 +12,56 @@ import {
 } from '../ui.js';
 import { openExpenseForm } from './expense-form.js';
 import { navigate } from '../router.js';
+
+/* ---------------------------------------------------------- sueldos del mes */
+
+export function openIncomeForm(mKey) {
+  const roster = store.people();
+  const inputs = new Map();
+
+  const campos = roster.map((p) => {
+    const actual = store.incomeFor(p.id, mKey);
+    const box = input({
+      class: 'input input--amount',
+      type: 'text',
+      inputmode: 'decimal',
+      placeholder: '0,00',
+      value: actual.amountCents ? String(fromCents(actual.amountCents)).replace('.', ',') : '',
+      'aria-label': `Líquido de ${p.name}`,
+    });
+    inputs.set(p.id, box);
+    return el('div', { style: 'margin-bottom:14px' }, [
+      el('div', { class: 'row', style: 'margin-bottom:6px' }, [
+        avatar(p),
+        el('span', { class: 'field__label grow', style: 'margin:0', text: p.name }),
+        actual.inherited && actual.amountCents
+          ? el('span', { class: 'tag', text: `viene de ${monthLabel(actual.inheritedFrom, store.state.settings.locale, 'short')}` })
+          : null,
+      ]),
+      box,
+    ]);
+  });
+
+  function save() {
+    let cargados = 0;
+    roster.forEach((p) => {
+      const cents = toCents(inputs.get(p.id).value);
+      store.setIncome(p.id, mKey, cents);
+      if (cents > 0) cargados += 1;
+    });
+    closeSheet();
+    toast(cargados ? 'Sueldos actualizados.' : 'Sueldos en cero.');
+  }
+
+  openSheet(`Sueldos de ${monthLabel(mKey, store.state.settings.locale)}`, el('div', {}, [
+    el('p', { class: 'muted small', style: 'margin-bottom:16px' },
+      'Poné el líquido que cobran, ya con el alquiler descontado. De acá se van restando los gastos del mes.'),
+    ...campos,
+    el('p', { class: 'field__hint', style: 'margin-top:-4px' },
+      'Se copia solo a los meses siguientes. Si un mes cobrás distinto, lo cambiás acá y listo.'),
+    footerButtons('Guardar', save),
+  ]));
+}
 
 /* ------------------------------------------------------- saldar la cuenta */
 
@@ -83,39 +133,122 @@ export function renderDashboard(root, params) {
 
   root.append(monthNav(mKey, (m) => navigate('resumen', { month: m })));
 
-  /* --- balance --- */
+  const budget = monthBudget(mKey);
+
+  /* --- lo que queda: el número que miran todos los días --- */
   const hero = el('section', { class: 'hero' });
-  if (!moves.length) {
+  if (!budget.hasIncome) {
     hero.append(
-      el('p', { class: 'hero__label', text: 'Balance' }),
-      el('p', { class: 'hero__value', text: '¡Están a mano!' }),
-      el('p', { class: 'hero__caption', text: 'Nadie le debe nada a nadie.' }),
-    );
-  } else {
-    const m = moves[0];
-    const from = store.person(m.fromId);
-    const to = store.person(m.toId);
-    hero.append(
-      el('p', { class: 'hero__label', text: 'Balance' }),
-      el('p', { class: 'hero__value num', text: fmt(m.amountCents) }),
-      el('p', { class: 'hero__caption' }, [
-        el('strong', { text: from.name }),
-        ' le debe a ',
-        el('strong', { text: to.name }),
+      el('p', { class: 'hero__label', text: 'Nos queda' }),
+      el('p', { class: 'hero__value', style: 'font-size:clamp(24px,7vw,30px)', text: 'Falta el sueldo' }),
+      el('p', { class: 'hero__caption', text: 'Cargá el líquido de cada uno y de ahí se descuentan los gastos.' }),
+      el('div', { class: 'hero__actions' }, [
+        el('button', { class: 'btn btn--primary', type: 'button', text: 'Cargar sueldos', onclick: () => openIncomeForm(mKey) }),
       ]),
     );
+  } else {
+    const negativo = budget.remainingCents < 0;
+    hero.append(
+      el('p', { class: 'hero__label', text: 'Nos queda' }),
+      el('p', {
+        class: 'hero__value num',
+        style: negativo ? 'color:var(--critical-text)' : '',
+        text: fmt(budget.remainingCents),
+      }),
+      el('p', { class: 'hero__caption' }, [
+        `de ${fmt(budget.totalIncome)} que entraron`,
+        budget.totalPending > 0
+          ? el('span', { class: 'small muted', style: 'display:block;margin-top:4px' },
+            `Si pagan los fijos que faltan, quedan ${fmt(budget.afterPendingCents)}`)
+          : null,
+      ]),
+      barList([{
+        label: `${Math.round(budget.usedPct * 100)}% del sueldo gastado`,
+        value: budget.totalSpent,
+        level: budget.usedPct >= 1 ? 'critical' : budget.usedPct >= 0.8 ? 'warning' : undefined,
+      }], { max: Math.max(budget.totalIncome, budget.totalSpent, 1) }),
+      el('div', { class: 'hero__actions' }, [
+        el('button', { class: 'btn btn--primary', type: 'button', text: '＋ Cargar gasto', onclick: () => openExpenseForm(null, { date: defaultDateFor(mKey) }) }),
+        el('button', { class: 'btn', type: 'button', text: 'Sueldos', onclick: () => openIncomeForm(mKey) }),
+      ]),
+    );
+  }
+  root.append(hero);
+
+  /* --- cuánto le queda a cada uno --- */
+  if (budget.hasIncome) {
+    root.append(el('section', { class: 'card' }, [
+      el('div', { class: 'card__head' }, [
+        el('h2', { class: 'card__title grow', text: 'Cuánto le queda a cada uno' }),
+        el('button', { class: 'linkbtn', type: 'button', text: 'Editar sueldos', onclick: () => openIncomeForm(mKey) }),
+      ]),
+      el('div', { class: 'stack', style: 'gap:16px' }, budget.rows.map((r) => {
+        const negativo = r.remainingCents < 0;
+        return el('div', {}, [
+          el('div', { class: 'row', style: 'margin-bottom:7px' }, [
+            avatar(r.person),
+            el('span', { class: 'grow', style: 'font-weight:600', text: r.person.name }),
+            el('span', {
+              class: 'num',
+              style: `font-size:19px;font-weight:680;${negativo ? 'color:var(--critical-text)' : ''}`,
+              text: fmt(r.remainingCents),
+            }),
+          ]),
+          barList([{
+            label: `Gastó ${fmt(r.spentCents)}`,
+            value: r.spentCents,
+            level: r.usedPct >= 1 ? 'critical' : r.usedPct >= 0.8 ? 'warning' : undefined,
+          }], {
+            max: Math.max(r.incomeCents, r.spentCents, 1),
+            formatValue: () => `de ${fmt(r.incomeCents)}`,
+          }),
+          r.pendingCents > 0
+            ? el('p', { class: 'field__hint', style: 'margin-top:6px' },
+              `Le faltan ${fmt(r.pendingCents)} de fijos: quedaría en ${fmt(r.afterPendingCents)}`)
+            : null,
+        ]);
+      })),
+      el('p', { class: 'field__hint', style: 'margin-top:14px' },
+        'Se descuenta la parte que le toca a cada uno, no lo que puso de su bolsillo: las diferencias se emparejan abajo, en el balance.'),
+    ]));
+  }
+
+  /* --- quién le debe a quién --- */
+  const balanceCard = el('section', { class: 'card' }, [
+    el('div', { class: 'card__head' }, [
+      el('h2', { class: 'card__title grow', text: 'Entre ustedes' }),
+    ]),
+  ]);
+  if (!moves.length) {
+    balanceCard.append(el('div', { class: 'row', style: 'gap:9px' }, [
+      el('span', { class: 'tag tag--good', text: 'Al día' }),
+      el('span', { class: 'small muted grow', text: 'Nadie le debe nada a nadie.' }),
+    ]));
+  } else {
+    const m = moves[0];
+    balanceCard.append(
+      el('div', { class: 'row row--between', style: 'align-items:baseline;margin-bottom:4px' }, [
+        el('span', {}, [
+          el('strong', { text: store.person(m.fromId).name }),
+          ' le debe a ',
+          el('strong', { text: store.person(m.toId).name }),
+        ]),
+        el('span', { class: 'num', style: 'font-size:19px;font-weight:680', text: fmt(m.amountCents) }),
+      ]),
+      el('p', { class: 'field__hint', text: 'Porque uno puso más plata de la que le tocaba. Al saldar, se empareja.' }),
+      el('button', {
+        class: 'btn btn--block', type: 'button', style: 'margin-top:12px',
+        text: 'Registrar el pago', onclick: () => openSettleForm(),
+      }),
+    );
     if (moves.length > 1) {
-      hero.append(el('div', { class: 'stack small muted', style: 'margin-top:10px' },
+      balanceCard.append(el('div', { class: 'stack small muted', style: 'margin-top:10px' },
         moves.slice(1).map((x) => el('span', {
           text: `${store.person(x.fromId).name} → ${store.person(x.toId).name}: ${fmt(x.amountCents)}`,
         }))));
     }
   }
-  hero.append(el('div', { class: 'hero__actions' }, [
-    el('button', { class: 'btn btn--primary', type: 'button', text: '＋ Cargar gasto', onclick: () => openExpenseForm(null, { date: defaultDateFor(mKey) }) }),
-    moves.length ? el('button', { class: 'btn', type: 'button', text: 'Saldar', onclick: () => openSettleForm() }) : null,
-  ]));
-  root.append(hero);
+  root.append(balanceCard);
 
   /* --- tarjetas de números --- */
   const prevTotal = monthSummary(addMonths(mKey, -1)).total;
@@ -189,7 +322,10 @@ export function renderDashboard(root, params) {
     root.append(el('section', { class: 'card' }, [
       el('div', { class: 'card__head' }, [
         el('h2', { class: 'card__title grow', text: 'En qué se fue' }),
-        el('span', { class: 'card__meta', text: `${summary.categories.length} categorías` }),
+        el('span', {
+          class: 'card__meta',
+          text: `${summary.categories.length} categoría${summary.categories.length === 1 ? '' : 's'}`,
+        }),
       ]),
       barList(summary.categories.slice(0, 8).map((c) => {
         const cat = store.category(c.id);

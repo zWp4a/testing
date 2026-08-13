@@ -1,6 +1,6 @@
 /* Cálculos: reparto de gastos, balances, resúmenes mensuales y vencimientos. */
 
-import { list, people, get } from './store.js';
+import { list, people, get, incomeFor } from './store.js';
 import { allocate, monthKey, currentMonth, addMonths, clampDay, today, daysBetween } from './util.js';
 
 /**
@@ -194,6 +194,75 @@ export function projectedMonthTotal(mKey) {
   const summary = monthSummary(mKey);
   const { pendingCents } = fixedStatus(mKey);
   return summary.total + pendingCents;
+}
+
+/** Cuánto le tocaría a cada uno de los fijos que todavía no se pagaron. */
+export function pendingFixedShares(mKey) {
+  const roster = people();
+  const out = {};
+  roster.forEach((p) => { out[p.id] = 0; });
+  fixedStatus(mKey).rows.forEach((r) => {
+    if (r.expense) return;
+    const shares = sharesOf({
+      amountCents: r.fixed.amountCents || 0,
+      paidBy: r.fixed.paidBy,
+      splitMode: r.fixed.splitMode,
+      splitTo: r.fixed.splitTo,
+      splitPct: r.fixed.splitPct,
+    }, roster);
+    Object.entries(shares).forEach(([id, cents]) => {
+      if (out[id] !== undefined) out[id] += cents;
+    });
+  });
+  return out;
+}
+
+/* ---------------------------------------------------------------- sueldos */
+
+/**
+ * El número que importa: cuánto queda del sueldo después de los gastos.
+ *
+ * Se descuenta *la parte que le toca* a cada uno, no lo que puso de su
+ * bolsillo, porque las diferencias entre los dos se emparejan al saldar. Así
+ * la suma de lo que le queda a cada uno da exactamente lo que queda en total.
+ */
+export function monthBudget(mKey) {
+  const roster = people();
+  const summary = monthSummary(mKey);
+  const pending = pendingFixedShares(mKey);
+
+  const rows = roster.map((p) => {
+    const income = incomeFor(p.id, mKey);
+    const spent = summary.owed[p.id] || 0;
+    const pendingCents = pending[p.id] || 0;
+    return {
+      person: p,
+      incomeCents: income.amountCents,
+      inherited: income.inherited,
+      inheritedFrom: income.month,
+      spentCents: spent,
+      paidCents: summary.paid[p.id] || 0,
+      pendingCents,
+      remainingCents: income.amountCents - spent,
+      afterPendingCents: income.amountCents - spent - pendingCents,
+      usedPct: income.amountCents > 0 ? spent / income.amountCents : 0,
+    };
+  });
+
+  const totalIncome = rows.reduce((s, r) => s + r.incomeCents, 0);
+  const totalPending = rows.reduce((s, r) => s + r.pendingCents, 0);
+
+  return {
+    month: mKey,
+    rows,
+    totalIncome,
+    totalSpent: summary.total,
+    totalPending,
+    remainingCents: totalIncome - summary.total,
+    afterPendingCents: totalIncome - summary.total - totalPending,
+    usedPct: totalIncome > 0 ? summary.total / totalIncome : 0,
+    hasIncome: totalIncome > 0,
+  };
 }
 
 /* ---------------------------------------------------------------- compras */
