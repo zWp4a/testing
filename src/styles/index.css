@@ -19,28 +19,14 @@
 
 @layer components {
   /*
-   * Fondo del hero: degradado en capas para dar profundidad sin geometría extra.
-   * Vive en CSS (no en la escena 3D) para no pagar un plano ni un pase de render.
+   * Fondo del póster estático. Con la escena 3D activa el degradado lo pinta
+   * el propio shader, así que esta capa sólo se ve en gama baja.
    */
   .hero-backdrop {
     background:
       radial-gradient(120% 90% at 68% 28%, rgba(255, 252, 248, 0.95) 0%, rgba(255, 252, 248, 0) 55%),
       radial-gradient(80% 70% at 18% 78%, rgba(224, 210, 194, 0.55) 0%, rgba(224, 210, 194, 0) 60%),
       linear-gradient(168deg, #fbf7f2 0%, #f2e9df 48%, #e6d9cb 100%);
-  }
-
-  /*
-   * Aproximación barata de profundidad de campo: el fondo se desenfoca,
-   * el producto (canvas) permanece nítido. Sin post-procesado.
-   */
-  .hero-defocus {
-    filter: blur(26px);
-    transform: scale(1.08);
-    will-change: transform;
-  }
-
-  .hero-vignette {
-    background: radial-gradient(72% 62% at 62% 46%, rgba(0, 0, 0, 0) 55%, rgba(58, 45, 34, 0.16) 100%);
   }
 }
 

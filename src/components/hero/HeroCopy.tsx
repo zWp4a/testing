@@ -24,7 +24,7 @@ export function HeroCopy() {
       variants={container}
       initial="hidden"
       animate="visible"
-      className="max-w-xl"
+      className="max-w-xl [text-shadow:0_1px_24px_rgba(251,246,239,0.85)]"
     >
       <motion.p
         variants={rise}
@@ -38,9 +38,9 @@ export function HeroCopy() {
         variants={rise}
         className="mt-7 font-display text-5xl font-light leading-[1.05] text-ink sm:text-6xl lg:text-7xl"
       >
-        La densidad
+        Densidad
         <br />
-        se vuelve
+        hecha
         <em className="italic"> caricia</em>
       </motion.h1>
 

@@ -1,75 +1,78 @@
 /**
- * Degradación elegante: misma composición (pote a la derecha, crema cayendo)
- * resuelta con SVG y degradados. Sin WebGL, sin three.js, sin bucle de render.
- * Se usa en gama baja, con `prefers-reduced-motion` y como fondo mientras el
- * canvas 3D se descarga.
+ * Degradación elegante: la misma escultura de crema resuelta con SVG.
+ * Sin WebGL, sin three.js, sin bucle de render. Se usa en gama baja, con
+ * `prefers-reduced-motion` y mientras el raymarcher se descarga y compila.
  */
-export function HeroPoster({ animated = true }: { animated?: boolean }) {
+export function HeroPoster() {
   return (
     <svg
-      viewBox="0 0 600 700"
+      viewBox="0 0 900 900"
       className="h-full w-full"
       role="img"
-      aria-label="Pote de crema corporal con crema espesa cayendo"
+      aria-label="Escultura de crema corporal densa suspendida en el aire"
       preserveAspectRatio="xMidYMid slice"
     >
       <defs>
-        <linearGradient id="poster-jar" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#FFFDFA" />
-          <stop offset="45%" stopColor="#F1E7DA" />
-          <stop offset="100%" stopColor="#D9C7B3" />
-        </linearGradient>
-        <linearGradient id="poster-cream" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#FFFBF5" />
-          <stop offset="60%" stopColor="#F7EDE0" />
-          <stop offset="100%" stopColor="#E7D6C2" />
-        </linearGradient>
-        <radialGradient id="poster-glow" cx="0.5" cy="0.4" r="0.6">
-          <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.85" />
-          <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
+        <radialGradient id="cream-body" cx="0.38" cy="0.3" r="0.85">
+          <stop offset="0%" stopColor="#FFFFFF" />
+          <stop offset="42%" stopColor="#FAF3E9" />
+          <stop offset="78%" stopColor="#EEDFCC" />
+          <stop offset="100%" stopColor="#DAC4A9" />
         </radialGradient>
-        <filter id="poster-soft" x="-30%" y="-30%" width="160%" height="160%">
-          <feGaussianBlur stdDeviation="9" />
+        <linearGradient id="cream-strand" x1="0.2" y1="0" x2="0.8" y2="1">
+          <stop offset="0%" stopColor="#FFFDF9" />
+          <stop offset="55%" stopColor="#F5EADB" />
+          <stop offset="100%" stopColor="#E2CDB4" />
+        </linearGradient>
+        <radialGradient id="poster-bg" cx="0.62" cy="0.45" r="0.75">
+          <stop offset="0%" stopColor="#FBF6EF" />
+          <stop offset="100%" stopColor="#E8DCCC" />
+        </radialGradient>
+        <filter id="cream-soft" x="-25%" y="-25%" width="150%" height="150%">
+          <feGaussianBlur stdDeviation="7" />
+        </filter>
+        <filter id="cream-glow" x="-40%" y="-40%" width="180%" height="180%">
+          <feGaussianBlur stdDeviation="26" />
         </filter>
       </defs>
 
-      <ellipse cx="330" cy="290" rx="230" ry="230" fill="url(#poster-glow)" />
+      <rect width="900" height="900" fill="url(#poster-bg)" />
+      <ellipse cx="560" cy="420" rx="250" ry="250" fill="#FFF8EE" opacity="0.55" filter="url(#cream-glow)" />
 
-      {/* Sombra de contacto */}
-      <ellipse cx="300" cy="596" rx="168" ry="26" fill="#6B5844" opacity="0.16" filter="url(#poster-soft)" />
-
-      {/* Charco acumulado */}
+      {/* Arco que barre la composición */}
       <path
-        d="M136 578c0-30 74-52 164-52s164 22 164 52-74 50-164 50-164-20-164-50z"
-        fill="url(#poster-cream)"
+        d="M366 214c46 34 78 78 96 130 20 58 12 118-14 172-24 50-30 96-14 140"
+        fill="none"
+        stroke="url(#cream-strand)"
+        strokeWidth="46"
+        strokeLinecap="round"
+        opacity="0.96"
       />
-      <path d="M180 566c34-16 88-24 120-24s86 8 120 24" fill="none" stroke="#FFFFFF" strokeOpacity="0.6" strokeWidth="3" />
 
-      {/* Chorro cayendo */}
+      {/* Masa central */}
+      <ellipse cx="556" cy="404" rx="152" ry="126" fill="url(#cream-body)" />
+      <ellipse cx="470" cy="352" rx="72" ry="66" fill="url(#cream-body)" />
+      <ellipse cx="640" cy="378" rx="64" ry="58" fill="url(#cream-body)" />
+      <ellipse cx="536" cy="316" rx="56" ry="50" fill="url(#cream-body)" />
+
+      {/* Hilo que desciende y se estrangula */}
       <path
-        d="M286 258c-10 40-24 66-22 106 2 40 16 78 12 118 -3 32 -10 48 -22 62 22 6 62 6 84 0 -14-16-22-34-24-64-3-42 10-80 10-120 0-40-12-66-20-102z"
-        fill="url(#poster-cream)"
-      >
-        {animated && (
-          <animate
-            attributeName="opacity"
-            values="1;0.94;1"
-            dur="6s"
-            repeatCount="indefinite"
-          />
-        )}
-      </path>
+        d="M572 512c10 44 16 84 12 124-3 30-14 52-16 82"
+        fill="none"
+        stroke="url(#cream-strand)"
+        strokeWidth="34"
+        strokeLinecap="round"
+      />
+      <ellipse cx="566" cy="742" rx="34" ry="38" fill="url(#cream-body)" />
 
-      {/* Pote inclinado */}
-      <g transform="rotate(19 386 250)">
-        <path
-          d="M280 176h212a18 18 0 0 1 18 18v112a44 44 0 0 1-44 44H306a44 44 0 0 1-44-44V194a18 18 0 0 1 18-18z"
-          fill="url(#poster-jar)"
-        />
-        <ellipse cx="386" cy="178" rx="106" ry="22" fill="#EFE3D4" />
-        <ellipse cx="386" cy="182" rx="88" ry="16" fill="#FBF5EC" />
-        <path d="M300 200v104" stroke="#FFFFFF" strokeOpacity="0.75" strokeWidth="10" strokeLinecap="round" />
-      </g>
+      {/* Gotas sueltas, escasas */}
+      <circle cx="700" cy="556" r="15" fill="url(#cream-body)" />
+      <circle cx="426" cy="536" r="10" fill="url(#cream-body)" />
+      <circle cx="648" cy="252" r="8" fill="url(#cream-body)" />
+
+      {/* Reflejos de softbox */}
+      <ellipse cx="500" cy="342" rx="62" ry="34" fill="#FFFFFF" opacity="0.55" filter="url(#cream-soft)" />
+      <ellipse cx="612" cy="452" rx="30" ry="18" fill="#FFFFFF" opacity="0.35" filter="url(#cream-soft)" />
     </svg>
   )
 }

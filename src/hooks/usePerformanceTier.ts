@@ -14,9 +14,9 @@ function detectTier(): PerformanceTier {
   if (typeof window === 'undefined') return 'low'
   if (prefersReducedMotion()) return 'low'
 
+  // three.js ya no soporta WebGL1, así que sin WebGL2 la escena no es opción.
   const canvas = document.createElement('canvas')
-  const gl = (canvas.getContext('webgl2') ||
-    canvas.getContext('webgl')) as WebGLRenderingContext | null
+  const gl = canvas.getContext('webgl2')
 
   if (!gl) return 'low'
 

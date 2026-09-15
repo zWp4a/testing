@@ -9,7 +9,7 @@ export default defineConfig({
         // Mantiene three.js fuera del bundle inicial: el hero 3D se carga en diferido.
         manualChunks: {
           three: ['three'],
-          r3f: ['@react-three/fiber', '@react-three/drei'],
+          r3f: ['@react-three/fiber'],
         },
       },
     },
